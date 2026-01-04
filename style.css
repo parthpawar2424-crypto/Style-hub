@@ -1,11 +1,159 @@
+/* =====================
+   Style Hub – CSS Palette
+   ===================== */
+:root {
+  /* Brand */
+  --brand-primary: #e91e63;
+  --brand-primary-hover: #d81b60;
+  --brand-accent: #0d6efd;
+
+  /* Text */
+  --text-primary: #222222;
+  --text-secondary: #555555;
+  --text-muted: #777777;
+  --text-inverse: #ffffff;
+
+  /* Backgrounds */
+  --bg-page: #faf7f2;
+  --bg-surface: #ffffff;
+  --bg-soft: #f5f5f5;
+  --bg-announcement: #0d6efd;
+
+  /* Borders & Dividers */
+  --border-light: #e6e6e6;
+  --border-medium: #dddddd;
+
+  /* UI States */
+  --success: #2ecc71;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-medium: 0 4px 10px rgba(0,0,0,0.10);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Layout */
+  --max-width: 1100px;
+  --header-height: 72px;
+
+  /* Typography */
+  --font-base: Georgia, "Times New Roman", serif;
+  --font-ui: Arial, Helvetica, sans-serif;
+}
+
+
 /* -------------------------
    Base / Layout
    ------------------------- */
 body {
   margin: 20px;
   font-family: Georgia, "Times New Roman", serif;
+  color:#222;
+}
+/* ===== Announcement Bar ===== */
+.top-announcement {
+  background: #0d6efd;
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 10px;
+}
+
+.announce-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+/* ===== Header Layout ===== */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #fff;
+}
+
+/* Logo */
+.logo {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #ee4b4b; /* modern soft red */
+  margin: 0;
+}
+.logo a {
+  text-decoration: none;
   color: #222;
 }
+
+.logo span {
+  color: var(--brand-primary);
+}
+
+/* Navigation */
+.main-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.main-nav a {
+  text-decoration: none;
+  font-weight: 600;
+  color: #333;
+}
+
+.main-nav a:hover {
+  color: #e91e63;
+}
+
+/* Icons */
+.header-icons {
+  display: flex;
+  gap: 15px;
+  font-size: 18px;
+}
+
+/* Normal state */
+.header-icons a {
+  text-decoration: none;
+  color: #333;
+}
+
+/* Disable hover effect completely */
+.header-icons a:hover {
+  color: #333;          /* same as normal */
+  text-decoration: none;
+  transform: none;
+}-
+/* Divider */
+hr {
+  border: none;
+  height: 1px;
+  background: #ddd;
+  margin: 0;
+}
+
+
+
 
 /* Logo */
 .logo {
@@ -35,6 +183,8 @@ a {
   text-decoration: none;
   margin: 0 5px;
 }
+
+
 
 /* Footer and other areas can remain plain links; hover effect kept */
 a:hover {
@@ -68,18 +218,59 @@ nav a:hover {
 nav a { text-decoration: none !important; } 
 Use !important only if needed. */
 
-/* -------------------------
-   Hero image
-   ------------------------- */
-.hero-image {
-  width: 90%;
-  max-width: 1100px;
-  height: auto;
-  display: block;
-  margin: 15px auto;
-  border-radius: 6px;
+/* HERO BANNER */
+.hero {
+  width: 100%;
+  height: 420px;
+  background: url("hero1.jpeg") center/cover no-repeat;
+  border-radius: 10px;
+  margin: 20px auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Dark overlay for readability */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  border-radius: 10px;
+}
+
+/* Text content */
+.hero-content {
+  position: relative;
+  color: #fff;
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.hero-content p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* Button */
+.hero-btn {
+  display: inline-block;
+  padding: 12px 26px;
+  background: #e91e63;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 25px;
+  text-decoration: none;
+}
+
+.hero-btn:hover {
+  background: #d81b60;
+}
 /* -------------------------
    Sale (marquee) bar
    ------------------------- */
@@ -172,36 +363,75 @@ Use !important only if needed. */
    ------------------------- */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  max-width: 1000px;
-  margin: 0 auto 30px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 30px auto;
   padding: 0 15px;
 }
 
 .product-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   text-align: center;
-  background-color: #fff;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
 .product-card img {
   width: 100%;
-  height: 220px;
+  height: 280px;
   object-fit: cover;
-  border-radius: 6px;
 }
 
-.product-card h3 {
-  margin: 10px 0 5px;
+/* Product text */
+.product-info {
+  padding: 14px;
+}
+
+.product-info h3 {
   font-size: 16px;
+  margin: 8px 0 6px;
 }
 
-.product-card p {
+.price {
+  font-size: 16px;
   font-weight: bold;
   color: #e91e63;
+  margin-bottom: 10px;
+}
+
+/* Add to Cart */
+.add-cart-btn {
+  width: 100%;
+  padding: 10px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.add-cart-btn:hover {
+  background: #e91e63;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 600px) {
+  .product-card img {
+    height: 240px;
+  }
 }
 
 /* -------------------------
