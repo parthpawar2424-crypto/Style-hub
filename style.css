@@ -222,7 +222,7 @@ Use !important only if needed. */
 .hero {
   width: 100%;
   height: 420px;
-  background: url("hero.jpeg") center/cover no-repeat;
+  background: url("hero.jpg") center/cover no-repeat;
   border-radius: 10px;
   margin: 20px auto;
   position: relative;
@@ -596,4 +596,5 @@ Use !important only if needed. */
 .login-form button:hover {
     opacity: 0.9;
 }
+
 
