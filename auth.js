@@ -6,6 +6,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // create a client using the global supabase object (from CDN)
 // NOTE: we name the variable supabaseClient (NOT supabase) to avoid collisions
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient = supabaseClient;
 
 /* ------- helper: update navbar links based on auth state ------- */
 async function updateNavbar() {
@@ -36,4 +37,5 @@ async function updateNavbar() {
 
 /* run on load */
 document.addEventListener("DOMContentLoaded", updateNavbar);
+
 
