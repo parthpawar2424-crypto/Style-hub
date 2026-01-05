@@ -17,7 +17,7 @@ async function updateNavbar() {
 
   if (data.user) {
     authLinks.innerHTML = `
-      <a href="my-orders.html">My Orders</a>
+      <a href="myorders.html">My Orders</a>
       <a href="#" id="logoutBtn">Logout</a>
     `;
 
@@ -37,3 +37,4 @@ async function updateNavbar() {
 // Run on every page
 
 updateNavbar();
+
