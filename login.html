@@ -68,47 +68,9 @@
     ©️ 2025 Style Hub. All Rights Reserved.
 </p>
 
-<!-- ✅ Supabase library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
-
-<!-- ✅ Supabase Login Logic -->
-<script>
-    const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
-
-    const supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const form = document.getElementById("loginForm");
-    const message = document.getElementById("message");
-
-    form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        message.style.color = "black";
-        message.textContent = "Logging in...";
-
-        const { error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (error) {
-            message.style.color = "red";
-            message.textContent = error.message;
-        } else {
-            message.style.color = "green";
-            message.textContent = "Login successful! Redirecting...";
-            setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1000);
-        }
-    });
-</script>
 
 </body>
 </html>
+
 
 
