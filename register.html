@@ -77,59 +77,18 @@
     ©️ 2025 Style Hub. All Rights Reserved.
 </p>
 
-<!-- ✅ Supabase library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- ✅ Supabase Register Logic -->
-<script>
-    const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
+<!-- Shared auth client -->
+<script src="auth.js"></script>
 
-    const supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!-- Page-specific register logic -->
+<script src="register.js"></script>
 
-    const form = document.getElementById("registerForm");
-    const message = document.getElementById("message");
-
-    form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const fullName = document.getElementById("fullName").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
-
-        if (password !== confirmPassword) {
-            message.style.color = "red";
-            message.textContent = "Passwords do not match";
-            return;
-        }
-
-        message.style.color = "black";
-        message.textContent = "Registering user...";
-
-        const { error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: {
-                    full_name: fullName
-                }
-            }
-        });
-
-        if (error) {
-            message.style.color = "red";
-            message.textContent = error.message;
-        } else {
-            message.style.color = "green";
-            message.textContent =
-                "Registration successful! Please check your email to verify.";
-            form.reset();
-        }
-    });
-</script>
 
 </body>
 </html>
+
 
 
