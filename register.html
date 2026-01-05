@@ -7,7 +7,7 @@
 
 <body>
 
-<h1 class="logo"><a href="index.html">Style <span>Hub</span></h1>
+<h1 class="logo"><a href="index.html">Style <span>Hub</span></a></h1>
 <hr>
 
 <nav>
@@ -24,24 +24,28 @@
 
 <div class="form-container">
 
-    <form class="register-form" action="thankyou.html">
+    <!-- ❌ removed action attribute -->
+    <form class="register-form" id="registerForm">
 
         <label>Full Name</label>
-        <input type="text" placeholder="Enter full name" required>
+        <input type="text" id="fullName" placeholder="Enter full name" required>
 
         <label>Email Address</label>
-        <input type="email" placeholder="Enter email" required>
+        <input type="email" id="email" placeholder="Enter email" required>
 
         <label>Username</label>
         <input type="text" placeholder="Choose username" required>
 
         <label>Password</label>
-        <input type="password" placeholder="Enter password" required>
+        <input type="password" id="password" placeholder="Enter password" required>
 
         <label>Confirm Password</label>
-        <input type="password" placeholder="Confirm password" required>
+        <input type="password" id="confirmPassword" placeholder="Confirm password" required>
 
         <button type="submit">Register</button>
+
+        <!-- ✅ message area -->
+        <p id="message" style="margin-top:10px;"></p>
 
         <p class="form-link">
             Already have an account?
@@ -71,8 +75,60 @@
 </footer>
 
 <p class="copyright">
-    © 2025 Style Hub. All Rights Reserved.
+    ©️ 2025 Style Hub. All Rights Reserved.
 </p>
+
+<!-- ✅ Supabase library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
+<!-- ✅ Supabase Register Logic -->
+<script>
+    const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
+
+    const supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById("registerForm");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const fullName = document.getElementById("fullName").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (password !== confirmPassword) {
+            message.style.color = "red";
+            message.textContent = "Passwords do not match";
+            return;
+        }
+
+        message.style.color = "black";
+        message.textContent = "Registering user...";
+
+        const { error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName
+                }
+            }
+        });
+
+        if (error) {
+            message.style.color = "red";
+            message.textContent = error.message;
+        } else {
+            message.style.color = "green";
+            message.textContent =
+                "Registration successful! Please check your email to verify.";
+            form.reset();
+        }
+    });
+</script>
 
 </body>
 </html>
