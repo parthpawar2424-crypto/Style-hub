@@ -7,7 +7,7 @@
 
 <body>
 
-<h1 class="logo"><a href="index.html">HIGH <span>STREET</span></h1>
+<h1 class="logo"><a href="index.html">HIGH <span>STREET</span></a></h1>
 <hr>
 
 <nav>
@@ -24,15 +24,19 @@
 
 <div class="form-container">
 
-    <form class="login-form" action="index.html">
+    <!-- ❌ removed action -->
+    <form class="login-form" id="loginForm">
 
         <label>Email Address</label>
-        <input type="email" placeholder="Enter email" required>
+        <input type="email" id="email" placeholder="Enter email" required>
 
         <label>Password</label>
-        <input type="password" placeholder="Enter password" required>
+        <input type="password" id="password" placeholder="Enter password" required>
 
         <button type="submit">Login</button>
+
+        <!-- ✅ message -->
+        <p id="message" style="margin-top:10px;"></p>
 
         <p class="form-link">
             Don’t have an account?
@@ -62,9 +66,48 @@
 </footer>
 
 <p class="copyright">
-    © 2025 Style Hub. All Rights Reserved.
+    ©️ 2025 Style Hub. All Rights Reserved.
 </p>
+
+<!-- ✅ Supabase library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
+<!-- ✅ Supabase Login Logic -->
+<script>
+    const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
+
+    const supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        message.style.color = "black";
+        message.textContent = "Logging in...";
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            message.style.color = "red";
+            message.textContent = error.message;
+        } else {
+            message.style.color = "green";
+            message.textContent = "Login successful! Redirecting...";
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+        }
+    });
+</script>
 
 </body>
 </html>
-
