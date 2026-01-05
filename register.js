@@ -1,3 +1,4 @@
+console.log("register.js loaded");
 const form = document.getElementById("registerForm");
 const message = document.getElementById("message");
 
