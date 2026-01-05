@@ -1,40 +1,38 @@
-// auth.js
+// auth.js  (place at repo root as you already did)
 
-const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
+const SUPABASE_URL = "https://lnjkpbpizjrpuhwmbqkd.supabase.co";   // <--- your project URL
+const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";             // <--- your anon key
 
-const supabase = supabaseLib.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+// create a client using the global supabase object (from CDN)
+// NOTE: we name the variable supabaseClient (NOT supabase) to avoid collisions
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Update navbar links
+/* ------- helper: update navbar links based on auth state ------- */
 async function updateNavbar() {
   const authLinks = document.getElementById("authLinks");
   if (!authLinks) return;
 
-  const { data } = await supabase.auth.getUser();
+  const { data } = await supabaseClient.auth.getUser();
 
-  if (data.user) {
+  if (data && data.user) {
     authLinks.innerHTML = `
       <a href="myorders.html">My Orders</a>
       <a href="#" id="logoutBtn">Logout</a>
     `;
 
-    document.getElementById("logoutBtn").onclick = async (e) => {
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = "index.html";
-    };
+    });
   } else {
     authLinks.innerHTML = `
-      <a href="register.html">Register</a>
       <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
     `;
   }
 }
 
-// Run on every page
-
-updateNavbar();
-
+/* run on load */
+document.addEventListener("DOMContentLoaded", updateNavbar);
