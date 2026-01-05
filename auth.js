@@ -1,7 +1,7 @@
 // auth.js  (place at repo root as you already did)
 
 const SUPABASE_URL = "https://lnjkpbpizjrpuhwmbqkd.supabase.co";   // <--- your project URL
-const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";             // <--- your anon key
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";             // <--- your anon key
 
 // create a client using the global supabase object (from CDN)
 // NOTE: we name the variable supabaseClient (NOT supabase) to avoid collisions
@@ -36,3 +36,4 @@ async function updateNavbar() {
 
 /* run on load */
 document.addEventListener("DOMContentLoaded", updateNavbar);
+
