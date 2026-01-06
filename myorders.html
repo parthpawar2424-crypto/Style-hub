@@ -53,9 +53,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <script>
-    /* CONFIG */
+    /* SUPABASE CONFIG */
     const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
 
     const supabase = supabaseLib.createClient(
         SUPABASE_URL,
@@ -64,10 +64,12 @@
 
     const ordersBox = document.getElementById("ordersBox");
 
-    async function loadOrdersPage() {
-        const { data } = await supabase.auth.getUser();
+    async function loadOrders() {
 
-        if (!data.user) {
+        /* CHECK LOGIN */
+        const { data: authData } = await supabase.auth.getUser();
+
+        if (!authData.user) {
             ordersBox.innerHTML = `
                 <p style="color:red; text-align:center;">
                     You must be logged in to view your orders.
@@ -79,20 +81,39 @@
             return;
         }
 
-        // TEMP: static demo orders (we'll replace with real DB)
-        ordersBox.innerHTML = `
-            <p><strong>Order #HS1023</strong></p>
-            <p>Status: <span style="color:green;">Placed</span></p>
-            <p>Total: ₹2,499</p>
-            <hr>
+        /* FETCH ORDERS */
+        const { data: orders, error } = await supabase
+            .from("orders")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-            <p><strong>Order #HS1011</strong></p>
-            <p>Status: <span style="color:orange;">Processing</span></p>
-            <p>Total: ₹1,299</p>
-        `;
+        if (error) {
+            ordersBox.innerHTML = "<p>Error loading orders.</p>";
+            console.error(error);
+            return;
+        }
+
+        if (orders.length === 0) {
+            ordersBox.innerHTML = "<p>No orders found.</p>";
+            return;
+        }
+
+        ordersBox.innerHTML = "";
+
+        orders.forEach(order => {
+            ordersBox.innerHTML += `
+                <div style="margin-bottom:15px;">
+                    <p><strong>Order ID:</strong> ${order.id}</p>
+                    <p>Status: <strong>${order.status}</strong></p>
+                    <p>Total: ₹${order.total_amount}</p>
+                    <p>Date: ${new Date(order.created_at).toLocaleString()}</p>
+                    <hr>
+                </div>
+            `;
+        });
     }
 
-    loadOrdersPage();
+    loadOrders();
 </script>
 
 </body>
