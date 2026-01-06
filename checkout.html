@@ -107,12 +107,53 @@ function loadCheckout() {
   box.innerHTML = html;
 }
 
-function placeOrder() {
-  alert("Order placed successfully!");
-  localStorage.removeItem("buyNowProduct");
-  window.location.href = "index.html";
-}
+async function placeOrder() {
+    const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
+    let items = [];
+    let total = 0;
+    let source = "";
+
+    if (buyNow) {
+        items = [buyNow];
+        total = buyNow.price * buyNow.qty;
+        source = "buy_now";
+    } else if (cart.length > 0) {
+        items = cart;
+        cart.forEach(i => total += i.price * i.qty);
+        source = "cart";
+    } else {
+        alert("Nothing to order");
+        return;
+    }
+
+    const orderData = {
+        order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
+        source: source,
+        items: items,
+        total_amount: total,
+        payment_method: "COD",
+        status: "Placed"
+    };
+
+    const { error } = await supabase
+        .from("orders")
+        .insert([orderData]);
+
+    if (error) {
+        console.error(error);
+        alert("Order failed: " + error.message);
+        return;
+    }
+
+    alert("Order placed successfully!");
+
+    localStorage.removeItem("buyNowProduct");
+    localStorage.removeItem("cart");
+
+    window.location.href = "index.html";
+}
 function cancelOrder() {
   localStorage.removeItem("buyNowProduct");
   window.history.back();
