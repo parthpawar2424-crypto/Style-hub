@@ -27,18 +27,15 @@
     </div>
 </div>
 
-<button onclick="clearCart()" style="margin:20px;">
-    Clear Cart
-</button>
-
 <hr>
 
-<p class="copyright">© 2025 High Street</p>
+<footer class="footer">
+    <p>© 2025 High Street</p>
+</footer>
 
 <script>
-const cartBox = document.getElementById("cartBox");
-
 function loadCart() {
+    const cartBox = document.getElementById("cartBox");
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if (cart.length === 0) {
@@ -50,31 +47,37 @@ function loadCart() {
     let grandTotal = 0;
 
     cart.forEach((item, index) => {
-        const itemTotal = item.price * item.qty;
+        let itemTotal = item.price * item.qty;
         grandTotal += itemTotal;
 
         html += `
-            <p><strong>${item.name}</strong></p>
-            <p>Price: ₹${item.price}</p>
-            <p>
-                Quantity:
+            <div class="cart-item">
+                <img src="${item.image}" style="width:120px; display:block; margin-bottom:10px;">
+                <p><strong>${item.name}</strong></p>
+                <p>Price: ₹${item.price}</p>
+
+                <p>Quantity:</p>
                 <button onclick="changeQty(${index}, -1)">−</button>
-                ${item.qty}
+                <span style="margin:0 10px;">${item.qty}</span>
                 <button onclick="changeQty(${index}, 1)">+</button>
-            </p>
-            <p>Total: ₹${itemTotal}</p>
-            <button onclick="removeItem(${index})">Remove</button>
-            <hr>
+
+                <p>Total: ₹${itemTotal}</p>
+
+                <button onclick="removeItem(${index})">Remove</button>
+                <hr>
+            </div>
         `;
     });
 
-    html += '<h3>Grand Total: ₹${grandTotal}</h3>';
+    html += <h3>Grand Total: ₹${grandTotal}</h3>;
+    html += <button onclick="clearCart()">Clear Cart</button>;
+
     cartBox.innerHTML = html;
 }
 
-function changeQty(index, delta) {
-    let cart = JSON.parse(localStorage.getItem("cart"));
-    cart[index].qty += delta;
+function changeQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart[index].qty += change;
 
     if (cart[index].qty <= 0) {
         cart.splice(index, 1);
@@ -85,7 +88,7 @@ function changeQty(index, delta) {
 }
 
 function removeItem(index) {
-    let cart = JSON.parse(localStorage.getItem("cart"));
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
     cart.splice(index, 1);
     localStorage.setItem("cart", JSON.stringify(cart));
     loadCart();
