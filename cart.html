@@ -44,6 +44,12 @@
     ©️ 2025 High Street. All Rights Reserved.
 </p>
 
+<div class="form-container">
+  <div class="login-form" id="cartBox">
+    Loading cart...
+  </div>
+</div>
+
 <script>
 function loadCart() {
     const cartBox = document.getElementById("cartBox");
@@ -70,13 +76,12 @@ function loadCart() {
         `;
     });
 
-    html += '<h3>Grand Total: ₹${total}</h3>';
+    html += <h3>Grand Total: ₹${total}</h3>;
 
     cartBox.innerHTML = html;
 }
 
 loadCart();
 </script>
-
 </body>
 </html>
