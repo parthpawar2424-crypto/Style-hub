@@ -50,9 +50,15 @@
     <div class="product-info">
       <h3>Formal Shirt</h3>
       <p class="price">₹899</p>
+
       <button class="add-cart-btn"
         onclick="addToCart('Formal Shirt', 899, 'men-formalshirt1.jpg')">
         ADD TO CART
+      </button>
+
+      <button class="buy-now-btn"
+        onclick="buyNow('Formal Shirt', 899, 'men-formalshirt1.jpg')">
+        BUY NOW
       </button>
     </div>
   </div>
@@ -62,9 +68,15 @@
     <div class="product-info">
       <h3>Casual Shirt</h3>
       <p class="price">₹799</p>
+
       <button class="add-cart-btn"
         onclick="addToCart('Casual Shirt', 799, 'men-casualshirt1.jpg')">
         ADD TO CART
+      </button>
+
+      <button class="buy-now-btn"
+        onclick="buyNow('Casual Shirt', 799, 'men-casualshirt1.jpg')">
+        BUY NOW
       </button>
     </div>
   </div>
@@ -74,9 +86,15 @@
     <div class="product-info">
       <h3>Checked Shirt</h3>
       <p class="price">₹999</p>
+
       <button class="add-cart-btn"
         onclick="addToCart('Checked Shirt', 999, 'men-checkedshirt1.jpg')">
         ADD TO CART
+      </button>
+
+      <button class="buy-now-btn"
+        onclick="buyNow('Checked Shirt', 999, 'men-checkedshirt1.jpg')">
+        BUY NOW
       </button>
     </div>
   </div>
@@ -86,9 +104,15 @@
     <div class="product-info">
       <h3>Denim Shirt</h3>
       <p class="price">₹1099</p>
+
       <button class="add-cart-btn"
         onclick="addToCart('Denim Shirt', 1099, 'men-denimshirt1.jpg')">
         ADD TO CART
+      </button>
+
+      <button class="buy-now-btn"
+        onclick="buyNow('Denim Shirt', 1099, 'men-denimshirt1.jpg')">
+        BUY NOW
       </button>
     </div>
   </div>
@@ -118,10 +142,9 @@
   ©️ 2025 High Street. All Rights Reserved.
 </p>
 
-<!-- ADD TO CART SCRIPT -->
+<!-- SCRIPTS -->
 <script>
 function addToCart(name, price, image) {
-
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     const existing = cart.find(item => item.name === name);
@@ -139,6 +162,18 @@ function addToCart(name, price, image) {
 
     localStorage.setItem("cart", JSON.stringify(cart));
     alert(name + " added to cart!");
+}
+
+function buyNow(name, price, image) {
+    const product = {
+        name: name,
+        price: price,
+        image: image,
+        qty: 1
+    };
+
+    localStorage.setItem("buyNowProduct", JSON.stringify(product));
+    window.location.href = "checkout.html";
 }
 </script>
 
