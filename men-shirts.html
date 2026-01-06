@@ -116,16 +116,12 @@
 function addToCart(name, price) {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    const existingProduct = cart.find(item => item.name === name);
+    const product = cart.find(item => item.name === name);
 
-    if (existingProduct) {
-        existingProduct.qty += 1;
+    if (product) {
+        product.qty += 1;
     } else {
-        cart.push({
-            name: name,
-            price: price,
-            qty: 1
-        });
+        cart.push({ name, price, qty: 1 });
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -135,5 +131,6 @@ function addToCart(name, price) {
 
 </body>
 </html>
+
 
 
