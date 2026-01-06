@@ -43,8 +43,26 @@
   ©️ 2025 High Street. All Rights Reserved.
 </p>
 
+<!-- SUPABASE LIBRARY -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
 <!-- CHECKOUT SCRIPT -->
 <script>
+/* ================== SUPABASE CONFIG ================== */
+const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
+
+const supabase = supabaseLib.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+/* ================== HELPERS ================== */
+function generateOrderId() {
+    return "HS-" + Math.floor(100000 + Math.random() * 900000);
+}
+
+/* ================== LOAD CHECKOUT ================== */
 function loadCheckout() {
     const box = document.getElementById("checkoutBox");
 
@@ -54,20 +72,19 @@ function loadCheckout() {
     let total = 0;
     let html = "<h3>Order Summary</h3><hr>";
 
-    // BUY NOW FLOW
+    // BUY NOW
     if (buyNow) {
         total = buyNow.price * buyNow.qty;
-
         html += `
             <img src="${buyNow.image}" style="width:120px; display:block; margin-bottom:10px;">
             <p><strong>${buyNow.name}</strong></p>
             <p>₹${buyNow.price} × ${buyNow.qty}</p>
         `;
     }
-    // CART FLOW
+    // CART
     else if (cart.length > 0) {
         cart.forEach(item => {
-            let itemTotal = item.price * item.qty;
+            const itemTotal = item.price * item.qty;
             total += itemTotal;
 
             html += `
@@ -89,11 +106,20 @@ function loadCheckout() {
         <h3>Total Payable: ₹${total}</h3>
         <p><strong>Payment Method:</strong> Cash on Delivery</p>
 
+        <h3>Delivery Details</h3>
+        <input id="custName" placeholder="Full Name">
+        <input id="custPhone" placeholder="Phone Number">
+        <textarea id="custAddress" placeholder="Full Address"></textarea>
+        <input id="custCity" placeholder="City">
+        <input id="custPincode" placeholder="Pincode">
+
         <button class="add-cart-btn" onclick="placeOrder()">
             Place Order
         </button>
 
-        <button class="add-cart-btn" onclick="cancelOrder()" style="background:#777; margin-top:10px;">
+        <button class="add-cart-btn"
+            onclick="cancelOrder()"
+            style="background:#777; margin-top:10px;">
             Cancel Order
         </button>
     `;
@@ -101,27 +127,62 @@ function loadCheckout() {
     box.innerHTML = html;
 }
 
-function placeOrder() {
-    alert("Order placed successfully!");
+/* ================== PLACE ORDER ================== */
+async function placeOrder() {
 
-    // Clear Buy Now product
+    const name = custName.value.trim();
+    const phone = custPhone.value.trim();
+    const address = custAddress.value.trim();
+    const city = custCity.value.trim();
+    const pincode = custPincode.value.trim();
+
+    if (!name || !phone || !address || !city || !pincode) {
+        alert("Please fill all delivery details");
+        return;
+    }
+
+    const orderId = generateOrderId();
+
+    const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const items = buyNow ? [buyNow] : cart;
+    const totalAmount = items.reduce(
+        (sum, item) => sum + item.price * item.qty, 0
+    );
+
+    const { error } = await supabase.from("orders").insert([{
+        order_id: orderId,
+        customer_name: name,
+        phone: phone,
+        address: address,
+        city: city,
+        pincode: pincode,
+        items: items,
+        total: totalAmount,
+        status: "Placed"
+    }]);
+
+    if (error) {
+        alert("Order failed: " + error.message);
+        return;
+    }
+
+    alert("Order placed successfully!\nOrder ID: " + orderId);
+
     localStorage.removeItem("buyNowProduct");
+    localStorage.removeItem("cart");
 
-    // OPTIONAL: clear cart if order placed from cart
-    // localStorage.removeItem("cart");
-
-    window.location.href = "index.html";
+    window.location.href = "myorders.html";
 }
 
+/* ================== CANCEL ORDER ================== */
 function cancelOrder() {
-    // Cancel Buy Now safely (if exists)
     localStorage.removeItem("buyNowProduct");
-
-    // Go back to previous page
     window.history.back();
 }
 
-// Load checkout on page open
+/* INIT */
 loadCheckout();
 </script>
 
