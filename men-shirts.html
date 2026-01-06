@@ -109,6 +109,29 @@
 <p class="copyright">
     © 2025 Style Hub. All Rights Reserved.
 </p>
+<script>
+function addToCart(name, price) {
 
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const existingProduct = cart.find(item => item.name === name);
+
+    if (existingProduct) {
+        existingProduct.qty += 1;
+    } else {
+        cart.push({
+            name: name,
+            price: price,
+            qty: 1
+        });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    alert(name + " added to cart!");
+}
+</script>
+    
 </body>
 </html>
+
