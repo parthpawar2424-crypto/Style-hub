@@ -70,6 +70,7 @@ function loadCart() {
     });
 
     html += `<h3>Grand Total: ₹${grandTotal}</h3>`;
+    html += `<button class="add-cart-btn" onclick="goToCheckout()">Proceed to Checkout</button>`;
     html += `<button onclick="clearCart()">Clear Cart</button>`;
 
     cartBox.innerHTML = html;
@@ -98,7 +99,9 @@ function clearCart() {
     localStorage.removeItem("cart");
     loadCart();
 }
-
+function goToCheckout() {
+    window.location.href = "checkout.html";
+}
 loadCart();
 </script>
 
