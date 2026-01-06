@@ -59,7 +59,7 @@ function loadCheckout() {
         total = buyNow.price * buyNow.qty;
 
         html += `
-            <img src="${buyNow.image}" style="width:120px;">
+            <img src="${buyNow.image}" style="width:120px; display:block; margin-bottom:10px;">
             <p><strong>${buyNow.name}</strong></p>
             <p>₹${buyNow.price} × ${buyNow.qty}</p>
         `;
@@ -71,7 +71,7 @@ function loadCheckout() {
             total += itemTotal;
 
             html += `
-                <img src="${item.image}" style="width:120px;">
+                <img src="${item.image}" style="width:120px; display:block; margin-bottom:10px;">
                 <p><strong>${item.name}</strong></p>
                 <p>₹${item.price} × ${item.qty} = ₹${itemTotal}</p>
                 <hr>
@@ -88,7 +88,14 @@ function loadCheckout() {
         <hr>
         <h3>Total Payable: ₹${total}</h3>
         <p><strong>Payment Method:</strong> Cash on Delivery</p>
-        <button onclick="placeOrder()">Place Order</button>
+
+        <button class="add-cart-btn" onclick="placeOrder()">
+            Place Order
+        </button>
+
+        <button class="add-cart-btn" onclick="cancelOrder()" style="background:#777; margin-top:10px;">
+            Cancel Order
+        </button>
     `;
 
     box.innerHTML = html;
@@ -100,12 +107,21 @@ function placeOrder() {
     // Clear Buy Now product
     localStorage.removeItem("buyNowProduct");
 
-    // Optional: clear cart if order was from cart
+    // OPTIONAL: clear cart if order placed from cart
     // localStorage.removeItem("cart");
 
     window.location.href = "index.html";
 }
 
+function cancelOrder() {
+    // Cancel Buy Now safely (if exists)
+    localStorage.removeItem("buyNowProduct");
+
+    // Go back to previous page
+    window.history.back();
+}
+
+// Load checkout on page open
 loadCheckout();
 </script>
 
