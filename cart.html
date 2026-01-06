@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cart - High Street</title>
+    <title>Cart - HIGH STREET</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="site-header">
-  <h1 class="logo">
-    <a href="index.html">HIGH&nbsp;STREET</a>
-  </h1>
-</header>
+<h1 class="logo">
+    <a href="index.html">HIGH <span>STREET</span></a>
+</h1>
+<hr>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="men.html">Men</a>
+    <a href="women.html">Women</a>
+    <a href="cart.html">Cart</a>
+</nav>
 
 <hr>
 
@@ -19,26 +25,29 @@
 
 <div class="form-container">
     <div class="login-form" id="cartBox">
-        Loading cart...
+        <p>Loading cart...</p>
     </div>
 </div>
 
 <hr>
 
 <footer class="footer">
-    <p style="text-align:center;">©️ 2025 High Street</p>
+    <div class="footer-section">
+        <h3>Company</h3>
+        <a href="#">About Us</a>
+        <a href="#">Help</a>
+        <a href="#">Terms & Conditions</a>
+    </div>
 </footer>
 
+<p class="copyright">
+    ©️ 2025 High Street. All Rights Reserved.
+</p>
+
 <script>
-console.log("Cart script loaded");
-
 function loadCart() {
-    console.log("loadCart() called");
-
     const cartBox = document.getElementById("cartBox");
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    console.log("Cart data:", cart);
 
     if (cart.length === 0) {
         cartBox.innerHTML = "<p>Your cart is empty.</p>";
@@ -55,13 +64,14 @@ function loadCart() {
         html += `
             <p><strong>${item.name}</strong></p>
             <p>Price: ₹${item.price}</p>
-            <p>Qty: ${item.qty}</p>
+            <p>Quantity: ${item.qty}</p>
             <p>Total: ₹${itemTotal}</p>
             <hr>
         `;
     });
 
     html += <h3>Grand Total: ₹${total}</h3>;
+
     cartBox.innerHTML = html;
 }
 
