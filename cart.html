@@ -1,56 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cart - HIGH STREET</title>
+    <title>Cart - High Street</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1 class="logo">
-    <a href="index.html">HIGH <span>STREET</span></a>
-</h1>
-<hr>
+<header class="site-header">
+  <div class="header-left">
+    <h1 class="logo">
+      <a href="index.html">HIGH&nbsp;STREET</a>
+    </h1>
+  </div>
 
-<nav>
-    <a href="index.html">Home</a>
+  <nav class="main-nav">
     <a href="men.html">Men</a>
     <a href="women.html">Women</a>
     <a href="cart.html">Cart</a>
-</nav>
+  </nav>
+</header>
 
 <hr>
 
 <h2 class="section-title">My Cart</h2>
 
 <div class="form-container">
-    <div class="login-form" id="cartItems">
-        <p>Loading cart...</p>
-    </div>
+  <div class="login-form" id="cartBox">
+    <p>Loading cart...</p>
+  </div>
 </div>
 
 <hr>
 
 <footer class="footer">
-    <p>© 2025 High Street. All Rights Reserved.</p>
+  <p style="text-align:center;">©️ 2025 High Street. All Rights Reserved.</p>
 </footer>
 
 <script>
-const cartBox = document.getElementById("cartItems");
-
 function loadCart() {
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cartBox = document.getElementById("cartBox");
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if (cart.length === 0) {
         cartBox.innerHTML = "<p>Your cart is empty.</p>";
         return;
     }
 
-    let total = 0;
     let html = "";
+    let total = 0;
 
-    cart.forEach((item, index) => {
-        let itemTotal = item.price * item.qty;
+    cart.forEach(item => {
+        const itemTotal = item.price * item.qty;
         total += itemTotal;
 
         html += `
@@ -58,30 +59,17 @@ function loadCart() {
             <p>Price: ₹${item.price}</p>
             <p>Quantity: ${item.qty}</p>
             <p>Total: ₹${itemTotal}</p>
-            <button onclick="removeItem(${index})">Remove</button>
             <hr>
         `;
     });
 
-    html += <h3>Total Amount: ₹${total}</h3>;
-    html += <button onclick="clearCart()">Clear Cart</button>;
+    html += <h3>Grand Total: ₹${total}</h3>;
 
     cartBox.innerHTML = html;
 }
 
-function removeItem(index) {
-    let cart = JSON.parse(localStorage.getItem("cart"));
-    cart.splice(index, 1);
-    localStorage.setItem("cart", JSON.stringify(cart));
-    loadCart();
-}
-
-function clearCart() {
-    localStorage.removeItem("cart");
-    loadCart();
-}
-
 loadCart();
 </script>
+
 </body>
 </html>
