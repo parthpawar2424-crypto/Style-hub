@@ -7,22 +7,24 @@
 
 <body>
 
-<h1 class="logo"><a href="index.html">HIGH <span>STREET</span></a></h1>
+<h1 class="logo">
+    <a href="index.html">HIGH <span>STREET</span></a>
+</h1>
 <hr>
 
 <nav>
     <a href="index.html">Home</a>
     <a href="men.html">Men</a>
     <a href="women.html">Women</a>
-    <span id="authLinks"></span>
+    <a href="cart.html">Cart</a>
 </nav>
 
 <hr>
 
-<h2 class="section-title">Your Cart</h2>
+<h2 class="section-title">My Cart</h2>
 
 <div class="form-container">
-    <div class="login-form" id="cartBox">
+    <div class="login-form" id="cartItems">
         <p>Loading cart...</p>
     </div>
 </div>
@@ -30,43 +32,14 @@
 <hr>
 
 <footer class="footer">
-    <div class="footer-section">
-        <h3>Company</h3>
-        <a href="about.html">About Us</a>
-        <a href="#">Help</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-
-    <div class="footer-section">
-        <h3>Quick Links</h3>
-        <a href="#">My Account</a>
-        <a href="#">Order Tracking</a>
-        <a href="#">Returns & Exchange</a>
-    </div>
+    <p>© 2025 High Street. All Rights Reserved.</p>
 </footer>
 
-<p class="copyright">
-    ©️ 2025 High Street. All Rights Reserved.
-</p>
-
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
-
 <script>
-/* SUPABASE CONFIG */
-const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
+const cartBox = document.getElementById("cartItems");
 
-const supabase = supabaseLib.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
-
-const cartBox = document.getElementById("cartBox");
-
-/* LOAD CART */
 function loadCart() {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if (cart.length === 0) {
         cartBox.innerHTML = "<p>Your cart is empty.</p>";
@@ -77,73 +50,35 @@ function loadCart() {
     let html = "";
 
     cart.forEach((item, index) => {
-        total += item.price * (item.qty || 1);
+        let itemTotal = item.price * item.qty;
+        total += itemTotal;
+
         html += `
             <p><strong>${item.name}</strong></p>
             <p>Price: ₹${item.price}</p>
-            <p>Quantity: ${item.qty || 1}</p>
+            <p>Quantity: ${item.qty}</p>
+            <p>Total: ₹${itemTotal}</p>
+            <button onclick="removeItem(${index})">Remove</button>
             <hr>
         `;
     });
 
-    html += `
-        <p><strong>Total Amount: ₹${total}</strong></p>
-        <button id="placeOrderBtn">Place Order (Cash on Delivery)</button>
-        <p id="orderMsg" style="margin-top:10px;"></p>
-    `;
+    html += <h3>Total Amount: ₹${total}</h3>;
+    html += <button onclick="clearCart()">Clear Cart</button>;
 
     cartBox.innerHTML = html;
-
-    document
-        .getElementById("placeOrderBtn")
-        .addEventListener("click", placeOrder);
 }
 
-/* PLACE ORDER */
-async function placeOrder() {
+function removeItem(index) {
+    let cart = JSON.parse(localStorage.getItem("cart"));
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    loadCart();
+}
 
-    const orderMsg = document.getElementById("orderMsg");
-    orderMsg.textContent = "Placing order...";
-
-    const { data: authData } = await supabase.auth.getUser();
-
-    if (!authData.user) {
-        orderMsg.style.color = "red";
-        orderMsg.textContent = "Please login to place an order.";
-        return;
-    }
-
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    let total = 0;
-
-    cart.forEach(item => {
-        total += item.price * (item.qty || 1);
-    });
-
-    const { error } = await supabase
-        .from("orders")
-        .insert([{
-            user_id: authData.user.id,
-            items: cart,
-            total_amount: total,
-            status: "Placed"
-        }]);
-
-    if (error) {
-        orderMsg.style.color = "red";
-        orderMsg.textContent = "Error placing order.";
-        console.error(error);
-        return;
-    }
-
+function clearCart() {
     localStorage.removeItem("cart");
-
-    orderMsg.style.color = "green";
-    orderMsg.textContent = "Order placed successfully!";
-
-    setTimeout(() => {
-        window.location.href = "myorders.html";
-    }, 1000);
+    loadCart();
 }
 
 loadCart();
