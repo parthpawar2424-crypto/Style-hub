@@ -7,9 +7,7 @@
 
 <body>
 
-<h1 class="logo">
-    <a href="index.html">HIGH <span>STREET</span></a>
-</h1>
+<h1 class="logo"><a href="index.html">HIGH <span>STREET</span></a></h1>
 <hr>
 
 <nav>
@@ -29,31 +27,19 @@
     </div>
 </div>
 
+<button onclick="clearCart()" style="margin:20px;">
+    Clear Cart
+</button>
+
 <hr>
 
-<footer class="footer">
-    <div class="footer-section">
-        <h3>Company</h3>
-        <a href="#">About Us</a>
-        <a href="#">Help</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-</footer>
-
-<p class="copyright">
-    ©️ 2025 High Street. All Rights Reserved.
-</p>
-
-<div class="form-container">
-  <div class="login-form" id="cartBox">
-    Loading cart...
-  </div>
-</div>
+<p class="copyright">© 2025 High Street</p>
 
 <script>
+const cartBox = document.getElementById("cartBox");
+
 function loadCart() {
-    const cartBox = document.getElementById("cartBox");
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if (cart.length === 0) {
         cartBox.innerHTML = "<p>Your cart is empty.</p>";
@@ -61,27 +47,57 @@ function loadCart() {
     }
 
     let html = "";
-    let total = 0;
+    let grandTotal = 0;
 
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
         const itemTotal = item.price * item.qty;
-        total += itemTotal;
+        grandTotal += itemTotal;
 
         html += `
             <p><strong>${item.name}</strong></p>
             <p>Price: ₹${item.price}</p>
-            <p>Quantity: ${item.qty}</p>
+            <p>
+                Quantity:
+                <button onclick="changeQty(${index}, -1)">−</button>
+                ${item.qty}
+                <button onclick="changeQty(${index}, 1)">+</button>
+            </p>
             <p>Total: ₹${itemTotal}</p>
+            <button onclick="removeItem(${index})">Remove</button>
             <hr>
         `;
     });
 
-    html += '<h3>Grand Total: ₹${total}</h3>';
-
+    html += <h3>Grand Total: ₹${grandTotal}</h3>;
     cartBox.innerHTML = html;
+}
+
+function changeQty(index, delta) {
+    let cart = JSON.parse(localStorage.getItem("cart"));
+    cart[index].qty += delta;
+
+    if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    loadCart();
+}
+
+function removeItem(index) {
+    let cart = JSON.parse(localStorage.getItem("cart"));
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    loadCart();
+}
+
+function clearCart() {
+    localStorage.removeItem("cart");
+    loadCart();
 }
 
 loadCart();
 </script>
+
 </body>
 </html>
