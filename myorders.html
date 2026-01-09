@@ -9,75 +9,78 @@
   <div id="debugBox" style="max-width:900px;margin:20px auto;font-family:Arial,Helvetica,sans-serif"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+
 <script>
-// ====== CONFIG ======
+/* ===== SUPABASE CONFIG ===== */
 const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const debugBox = document.getElementById('debugBox');
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-function log(msg, obj){
-  console.log(msg, obj);
-  const p = document.createElement('pre');
-  p.style.background='#f7f7f7'; p.style.padding='8px'; p.style.border='1px solid #eee';
-  p.textContent = typeof obj === 'undefined' ? msg : ${msg}\n${JSON.stringify(obj,null,2)};
-  debugBox.appendChild(p);
+const ordersBox = document.getElementById("ordersBox");
+
+/* ===== LOAD ORDERS SAFELY ===== */
+async function loadOrders() {
+
+  // ✅ STEP 1: Get session (IMPORTANT)
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session) {
+    ordersBox.innerHTML = `
+      <p style="color:red; text-align:center;">
+        Please login to view your orders
+      </p>
+      <p style="text-align:center;">
+        <a href="login.html">Login</a>
+      </p>
+    `;
+    return;
+  }
+
+  // ✅ STEP 2: Get user from session
+  const user = sessionData.session.user;
+
+  // ✅ STEP 3: Fetch orders for this user
+  const { data: orders, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    ordersBox.innerHTML = "Failed to load orders";
+    console.error(error);
+    return;
+  }
+
+  if (orders.length === 0) {
+    ordersBox.innerHTML = "<p>No orders found.</p>";
+    return;
+  }
+
+  let html = "";
+
+  orders.forEach(order => {
+    html += `
+      <div style="border-bottom:1px solid #ddd; margin-bottom:15px; padding-bottom:10px;">
+        <p><strong>Order ID:</strong> ${order.order_id}</p>
+        <p><strong>Status:</strong> ${order.status}</p>
+        <p><strong>Total:</strong> ₹${order.total_amount}</p>
+        <p><strong>Payment:</strong> ${order.payment_method}</p>
+      </div>
+    `;
+  });
+
+  ordersBox.innerHTML = html;
 }
 
-async function runDebug() {
-  log("START DEBUG");
-
-  // 1) Supabase client present?
-  log("supabaseClient defined?", !!supabaseClient);
-
-  // 2) Show session / user
-  try {
-    const resUser = await supabaseClient.auth.getUser();
-    log("auth.getUser() ->", resUser);
-  } catch(e){
-    log("auth.getUser() threw ->", e.message || e);
-  }
-
-  // 3) Try fetching last 10 orders (no filter)
-  try {
-    const resAll = await supabaseClient
-      .from('orders')
-      .select('id,order_id,user_id,total_amount,status,created_at')
-      .order('created_at',{ascending:false})
-      .limit(10);
-    log("fetch last 10 orders (no filter) ->", resAll);
-  } catch(e){
-    log("fetch all threw ->", e.message || e);
-  }
-
-  // 4) If user present, fetch orders for user
-  try {
-    const got = await supabaseClient.auth.getUser();
-    const user = got?.data?.user;
-    log("current user object ->", user);
-
-    if (user && user.id) {
-      const resUserOrders = await supabaseClient
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at',{ascending:false});
-      log("orders for this user ->", resUserOrders);
-    } else {
-      log("No logged-in user found — please login first.");
-    }
-  } catch(e){
-    log("user-orders fetch threw ->", e.message || e);
-  }
-
-  // 5) Show SQL check to run in Supabase console
-  log("SQL to inspect orders (run in Supabase SQL editor):", 
-select id, order_id, user_id, created_at from public.orders order by created_at desc limit 20;);
-}
-
-runDebug();
+// 🔥 RUN AFTER PAGE LOAD
+loadOrders();
 </script>
 </body>
 </html>
+
 
