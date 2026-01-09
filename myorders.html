@@ -7,7 +7,7 @@
 
 <body>
 
-<h2 style="text-align:center">My Orders</h2>
+<h2 class="section-title">My Orders</h2>
 
 <div class="form-container">
   <div class="login-form" id="ordersBox">
@@ -15,48 +15,21 @@
   </div>
 </div>
 
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
 
 <script>
-/* ===== SUPABASE CONFIG ===== */
-const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
-
-/* ✅ CORRECT CLIENT INIT (THIS IS THE FIX) */
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      storage: window.localStorage
-    }
-  }
-);
-
-const ordersBox = document.getElementById("ordersBox");
-
 async function loadOrders() {
+  const box = document.getElementById("ordersBox");
 
-  /* ✅ WAIT FOR SESSION */
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
-
-  if (!session) {
-    ordersBox.innerHTML = `
-      <p style="color:red; text-align:center;">
-        Please login to view your orders
-      </p>
-      <p style="text-align:center;">
-        <a href="login.html">Login</a>
-      </p>
-    `;
+  const { data: auth } = await supabaseClient.auth.getUser();
+  if (!auth.user) {
+    box.innerHTML = "Please login to view orders";
     return;
   }
 
-  const userId = session.user.id;
+  const userId = auth.user.id;
 
   const { data: orders, error } = await supabaseClient
     .from("orders")
@@ -65,33 +38,31 @@ async function loadOrders() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    ordersBox.innerHTML = "Error loading orders";
+    box.innerHTML = error.message;
     return;
   }
 
   if (orders.length === 0) {
-    ordersBox.innerHTML = "No orders found.";
+    box.innerHTML = "No orders found";
     return;
   }
 
   let html = "";
-
   orders.forEach(o => {
     html += `
-      <div style="border-bottom:1px solid #ccc; margin-bottom:12px;">
-        <p><strong>Order ID:</strong> ${o.order_id}</p>
+      <div style="margin-bottom:15px;">
         <p><strong>Status:</strong> ${o.status}</p>
         <p><strong>Total:</strong> ₹${o.total_amount}</p>
         <p><strong>Payment:</strong> ${o.payment_method}</p>
+        <hr>
       </div>
     `;
   });
 
-  ordersBox.innerHTML = html;
+  box.innerHTML = html;
 }
 
-/* 🔥 LOAD AFTER PAGE READY */
-window.addEventListener("load", loadOrders);
+loadOrders();
 </script>
 
 </body>
