@@ -1,119 +1,103 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Orders - HIGH STREET</title>
-    <link rel="stylesheet" href="style.css">
+  <title>My Orders - High Street</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1 class="logo"><a href="index.html">HIGH <span>STREET</span></a></h1>
-<hr>
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-left">
+    <h1 class="logo">
+      <a href="index.html">HIGH&nbsp;STREET</a>
+    </h1>
+  </div>
 
-<nav>
+  <nav class="main-nav">
     <a href="index.html">Home</a>
     <a href="men.html">Men</a>
     <a href="women.html">Women</a>
-    <span id="authLinks"></span>
-</nav>
+    <a href="cart.html">Cart</a>
+  </nav>
+</header>
 
 <hr>
 
 <h2 class="section-title">My Orders</h2>
 
 <div class="form-container">
-    <div class="login-form" id="ordersBox">
-        <p>Loading your orders...</p>
-    </div>
+  <div class="login-form" id="ordersBox">
+    <p>Loading orders...</p>
+  </div>
 </div>
 
 <hr>
 
-<footer class="footer">
-    <div class="footer-section">
-        <h3>Company</h3>
-        <a href="about.html">About Us</a>
-        <a href="#">Help</a>
-        <a href="#">Terms & Conditions</a>
-    </div>
-
-    <div class="footer-section">
-        <h3>Quick Links</h3>
-        <a href="#">My Account</a>
-        <a href="#">Order Tracking</a>
-        <a href="#">Returns & Exchange</a>
-    </div>
-</footer>
-
 <p class="copyright">
-    ©️ 2025 High Street. All Rights Reserved.
+  ©️ 2025 High Street. All Rights Reserved.
 </p>
 
-<!-- Supabase JS -->
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <script>
-    /* SUPABASE CONFIG */
-    const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
+/* ===== SUPABASE CONFIG ===== */
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
-    const supabase = supabaseLib.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-    const ordersBox = document.getElementById("ordersBox");
+/* ===== LOAD ORDERS ===== */
+async function loadOrders() {
+  const box = document.getElementById("ordersBox");
 
-    async function loadOrders() {
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-        /* CHECK LOGIN */
-        const { data: authData } = await supabase.auth.getUser();
+  if (error) {
+    console.error(error);
+    box.innerHTML = "<p>Failed to load orders.</p>";
+    return;
+  }
 
-        if (!authData.user) {
-            ordersBox.innerHTML = `
-                <p style="color:red; text-align:center;">
-                    You must be logged in to view your orders.
-                </p>
-                <p style="text-align:center;">
-                    <a href="login.html">Login here</a>
-                </p>
-            `;
-            return;
-        }
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No orders found.</p>";
+    return;
+  }
 
-        /* FETCH ORDERS */
-        const { data: orders, error } = await supabase
-            .from("orders")
-            .select("*")
-            .order("created_at", { ascending: false });
+  let html = "";
 
-        if (error) {
-            ordersBox.innerHTML = "<p>Error loading orders.</p>";
-            console.error(error);
-            return;
-        }
+  data.forEach(order => {
+    html += `
+      <div style="border:1px solid #ddd; padding:15px; margin-bottom:15px;">
+        <p><strong>Order ID:</strong> ${order.order_id}</p>
+        <p><strong>Status:</strong> ${order.status}</p>
+        <p><strong>Total:</strong> ₹${order.total_amount}</p>
+        <p><strong>Payment:</strong> ${order.payment_method}</p>
+        <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
 
-        if (orders.length === 0) {
-            ordersBox.innerHTML = "<p>No orders found.</p>";
-            return;
-        }
+        <hr>
+        <strong>Items:</strong>
+    `;
 
-        ordersBox.innerHTML = "";
+    order.items.forEach(item => {
+      html += <p>${item.name} — ₹${item.price} × ${item.qty}</p>;
+    });
 
-        orders.forEach(order => {
-            ordersBox.innerHTML += `
-                <div style="margin-bottom:15px;">
-                    <p><strong>Order ID:</strong> ${order.id}</p>
-                    <p>Status: <strong>${order.status}</strong></p>
-                    <p>Total: ₹${order.total_amount}</p>
-                    <p>Date: ${new Date(order.created_at).toLocaleString()}</p>
-                    <hr>
-                </div>
-            `;
-        });
-    }
+    html += </div>;
+  });
 
-    loadOrders();
+  box.innerHTML = html;
+}
+
+loadOrders();
 </script>
 
 </body>
