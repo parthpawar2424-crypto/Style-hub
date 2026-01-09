@@ -7,37 +7,14 @@
 
 <body>
 
-<header class="site-header">
-  <div class="header-left">
-    <h1 class="logo">
-      <a href="index.html">HIGH&nbsp;STREET</a>
-    </h1>
-  </div>
-
-  <nav class="main-nav">
-    <a href="index.html">Home</a>
-    <a href="men.html">Men</a>
-    <a href="women.html">Women</a>
-  </nav>
-</header>
-
-<hr>
-
-<h2 class="section-title">My Orders</h2>
+<h2 style="text-align:center">My Orders</h2>
 
 <div class="form-container">
   <div class="login-form" id="ordersBox">
-    <p>Loading your orders...</p>
+    Loading orders...
   </div>
 </div>
 
-<hr>
-
-<p class="copyright">
-  ©️ 2025 High Street. All Rights Reserved.
-</p>
-
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <script>
@@ -45,18 +22,29 @@
 const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
 
+/* ✅ CORRECT CLIENT INIT (THIS IS THE FIX) */
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      storage: window.localStorage
+    }
+  }
 );
 
 const ordersBox = document.getElementById("ordersBox");
 
 async function loadOrders() {
 
-  const { data: sessionData } = await supabaseClient.auth.getSession();
+  /* ✅ WAIT FOR SESSION */
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-  if (!sessionData.session) {
+  if (!session) {
     ordersBox.innerHTML = `
       <p style="color:red; text-align:center;">
         Please login to view your orders
@@ -68,33 +56,33 @@ async function loadOrders() {
     return;
   }
 
-  const user = sessionData.session.user;
+  const userId = session.user.id;
 
   const { data: orders, error } = await supabaseClient
     .from("orders")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) {
-    ordersBox.innerHTML = "Failed to load orders.";
+    ordersBox.innerHTML = "Error loading orders";
     return;
   }
 
   if (orders.length === 0) {
-    ordersBox.innerHTML = "<p>No orders found.</p>";
+    ordersBox.innerHTML = "No orders found.";
     return;
   }
 
   let html = "";
 
-  orders.forEach(order => {
+  orders.forEach(o => {
     html += `
-      <div style="border-bottom:1px solid #ddd; margin-bottom:15px; padding-bottom:10px;">
-        <p><strong>Order ID:</strong> ${order.order_id}</p>
-        <p><strong>Status:</strong> ${order.status}</p>
-        <p><strong>Total:</strong> ₹${order.total_amount}</p>
-        <p><strong>Payment:</strong> ${order.payment_method}</p>
+      <div style="border-bottom:1px solid #ccc; margin-bottom:12px;">
+        <p><strong>Order ID:</strong> ${o.order_id}</p>
+        <p><strong>Status:</strong> ${o.status}</p>
+        <p><strong>Total:</strong> ₹${o.total_amount}</p>
+        <p><strong>Payment:</strong> ${o.payment_method}</p>
       </div>
     `;
   });
@@ -102,7 +90,8 @@ async function loadOrders() {
   ordersBox.innerHTML = html;
 }
 
-loadOrders();
+/* 🔥 LOAD AFTER PAGE READY */
+window.addEventListener("load", loadOrders);
 </script>
 
 </body>
