@@ -43,27 +43,20 @@
   ©️ 2025 High Street. All Rights Reserved.
 </p>
 
-<!-- SUPABASE LIBRARY -->
+<!-- ✅ SUPABASE LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
-<!-- CHECKOUT SCRIPT -->
 <script>
-/* ============ SUPABASE CONFIG ============ */
-const SUPABASE_URL = "https://lnjkpbpizjrpuhwmbqkd.supabase.co";
+/* ================= SUPABASE CONFIG ================= */
+const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
 
-/* 🔑 IMPORTANT: different variable name */
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-/* ============ HELPERS ============ */
-function generateOrderId() {
-  return "HS-" + Math.floor(100000 + Math.random() * 900000);
-}
-
-/* ============ LOAD CHECKOUT ============ */
+/* ================= LOAD CHECKOUT ================= */
 function loadCheckout() {
   const box = document.getElementById("checkoutBox");
 
@@ -80,7 +73,8 @@ function loadCheckout() {
       <p><strong>${buyNow.name}</strong></p>
       <p>₹${buyNow.price} × ${buyNow.qty}</p>
     `;
-  } else if (cart.length > 0) {
+  } 
+  else if (cart.length > 0) {
     cart.forEach(item => {
       const itemTotal = item.price * item.qty;
       total += itemTotal;
@@ -91,15 +85,19 @@ function loadCheckout() {
         <hr>
       `;
     });
-  } else {
+  } 
+  else {
     box.innerHTML = "<p>Your cart is empty.</p>";
     return;
   }
 
   html += `
     <h3>Total Payable: ₹${total}</h3>
+    <p><strong>Payment:</strong> Cash on Delivery</p>
+
     <button class="add-cart-btn" onclick="placeOrder()">Place Order</button>
-    <button class="add-cart-btn" onclick="cancelOrder()" style="background:#777;margin-top:10px;">
+    <button class="add-cart-btn" onclick="cancelOrder()" 
+      style="background:#777; margin-top:10px;">
       Cancel Order
     </button>
   `;
@@ -107,7 +105,16 @@ function loadCheckout() {
   box.innerHTML = html;
 }
 
+/* ================= PLACE ORDER ================= */
 async function placeOrder() {
+
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    alert("Please login to place order");
+    return;
+  }
+
   const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -119,43 +126,45 @@ async function placeOrder() {
     items = [buyNow];
     total = buyNow.price * buyNow.qty;
     source = "buy_now";
-  } else if (cart.length > 0) {
+  } 
+  else if (cart.length > 0) {
     items = cart;
     cart.forEach(i => total += i.price * i.qty);
     source = "cart";
-  } else {
+  } 
+  else {
     alert("Nothing to order");
     return;
   }
 
   const orderData = {
-  order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
-  source: source,
-  items: items,
-  total_amount: total,
-  payment_method: "COD",
-  status: "Placed"
-};
+    order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
+    user_id: data.user.id,
+    source: source,
+    items: items,
+    total_amount: total,
+    payment_method: "COD",
+    status: "Placed"
+  };
 
-console.log("Inserting order:", orderData);
+  const { error: insertError } = await supabaseClient
+    .from("orders")
+    .insert([orderData]);
 
-const { error } = await supabaseClient
-  .from("orders")
-  .insert([orderData]);
+  if (insertError) {
+    alert("Order failed: " + insertError.message);
+    return;
+  }
 
-if (error) {
-  console.error("Supabase error:", error);
-  alert("Order failed: " + error.message);
-  return;
-}
-
-alert("Order placed successfully!");
+  alert("Order placed successfully!");
 
   localStorage.removeItem("buyNowProduct");
   localStorage.removeItem("cart");
 
-  window.location.href = "index.html";
+  window.location.href = "myorders.html";
 }
+
+/* ================= CANCEL ORDER ================= */
 function cancelOrder() {
   localStorage.removeItem("buyNowProduct");
   window.history.back();
