@@ -7,7 +7,6 @@
 
 <body>
 
-<!-- HEADER -->
 <header class="site-header">
   <div class="header-left">
     <h1 class="logo">
@@ -19,7 +18,6 @@
     <a href="index.html">Home</a>
     <a href="men.html">Men</a>
     <a href="women.html">Women</a>
-    <a href="cart.html">Cart</a>
   </nav>
 </header>
 
@@ -29,7 +27,7 @@
 
 <div class="form-container">
   <div class="login-form" id="ordersBox">
-    <p>Loading orders...</p>
+    <p>Loading your orders...</p>
   </div>
 </div>
 
@@ -43,62 +41,71 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <script>
-/* ===== SUPABASE CONFIG ===== */
-const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+/* ============ SUPABASE CONFIG ============ */
+const SUPABASE_URL = "https://lnjkpbbjzjrpuwhmbqkd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuamtwYnBpempycHVod21icWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MTQwNTMsImV4cCI6MjA4MzE5MDA1M30.VSPdTEwoSs4DEreHGwKSHjnDE9qGD-Lp9iLM6V3zMlw";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-/* ===== LOAD ORDERS ===== */
+const ordersBox = document.getElementById("ordersBox");
+
+/* ============ LOAD ORDERS ============ */
 async function loadOrders() {
-  const box = document.getElementById("ordersBox");
 
-  const { data, error } = await supabaseClient
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabaseClient.auth.getUser();
 
-  if (error) {
-    console.error(error);
-    box.innerHTML = "<p>Failed to load orders.</p>";
+  if (error || !data.user) {
+    ordersBox.innerHTML = `
+      <p style="color:red; text-align:center;">
+        Please login to view orders
+      </p>
+      <p style="text-align:center;">
+        <a href="login.html">Login</a>
+      </p>
+    `;
     return;
   }
 
-  if (!data || data.length === 0) {
-    box.innerHTML = "<p>No orders found.</p>";
+  const userId = data.user.id;
+
+  const { data: orders, error: fetchError } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (fetchError) {
+    ordersBox.innerHTML = "Failed to load orders";
+    console.error(fetchError);
+    return;
+  }
+
+  if (orders.length === 0) {
+    ordersBox.innerHTML = "<p>No orders found.</p>";
     return;
   }
 
   let html = "";
 
-  data.forEach(order => {
+  orders.forEach(order => {
     html += `
-      <div style="border:1px solid #ddd; padding:15px; margin-bottom:15px;">
+      <div style="border-bottom:1px solid #ddd; padding-bottom:15px; margin-bottom:15px;">
         <p><strong>Order ID:</strong> ${order.order_id}</p>
         <p><strong>Status:</strong> ${order.status}</p>
         <p><strong>Total:</strong> ₹${order.total_amount}</p>
         <p><strong>Payment:</strong> ${order.payment_method}</p>
-        <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
-
-        <hr>
-        <strong>Items:</strong>
+      </div>
     `;
-
-    order.items.forEach(item => {
-      html += <p>${item.name} — ₹${item.price} × ${item.qty}</p>;
-    });
-
-    html += </div>;
   });
 
-  box.innerHTML = html;
+  ordersBox.innerHTML = html;
 }
 
 loadOrders();
 </script>
-
 </body>
 </html>
+
