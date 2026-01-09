@@ -1,13 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Orders - Debug</title>
+  <title>My Orders - High Street</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h2>My Orders — Debug Mode</h2>
-  <div id="debugBox" style="max-width:900px;margin:20px auto;font-family:Arial,Helvetica,sans-serif"></div>
 
+<body>
+
+<header class="site-header">
+  <div class="header-left">
+    <h1 class="logo">
+      <a href="index.html">HIGH&nbsp;STREET</a>
+    </h1>
+  </div>
+
+  <nav class="main-nav">
+    <a href="index.html">Home</a>
+    <a href="men.html">Men</a>
+    <a href="women.html">Women</a>
+  </nav>
+</header>
+
+<hr>
+
+<h2 class="section-title">My Orders</h2>
+
+<div class="form-container">
+  <div class="login-form" id="ordersBox">
+    <p>Loading your orders...</p>
+  </div>
+</div>
+
+<hr>
+
+<p class="copyright">
+  ©️ 2025 High Street. All Rights Reserved.
+</p>
+
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <script>
@@ -22,10 +52,8 @@ const supabaseClient = window.supabase.createClient(
 
 const ordersBox = document.getElementById("ordersBox");
 
-/* ===== LOAD ORDERS SAFELY ===== */
 async function loadOrders() {
 
-  // ✅ STEP 1: Get session (IMPORTANT)
   const { data: sessionData } = await supabaseClient.auth.getSession();
 
   if (!sessionData.session) {
@@ -40,10 +68,8 @@ async function loadOrders() {
     return;
   }
 
-  // ✅ STEP 2: Get user from session
   const user = sessionData.session.user;
 
-  // ✅ STEP 3: Fetch orders for this user
   const { data: orders, error } = await supabaseClient
     .from("orders")
     .select("*")
@@ -51,8 +77,7 @@ async function loadOrders() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    ordersBox.innerHTML = "Failed to load orders";
-    console.error(error);
+    ordersBox.innerHTML = "Failed to load orders.";
     return;
   }
 
@@ -77,10 +102,8 @@ async function loadOrders() {
   ordersBox.innerHTML = html;
 }
 
-// 🔥 RUN AFTER PAGE LOAD
 loadOrders();
 </script>
+
 </body>
 </html>
-
-
