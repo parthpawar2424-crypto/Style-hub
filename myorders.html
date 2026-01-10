@@ -43,21 +43,39 @@ async function loadOrders() {
     return;
   }
 
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     box.innerHTML = "No orders found";
     return;
   }
 
   let html = "";
-  orders.forEach(o => {
+
+  orders.forEach(order => {
     html += `
-      <div style="margin-bottom:15px;">
-        <p><strong>Status:</strong> ${o.status}</p>
-        <p><strong>Total:</strong> ₹${o.total_amount}</p>
-        <p><strong>Payment:</strong> ${o.payment_method}</p>
+      <div style="background:#f8f8f8;padding:15px;border-radius:8px;margin-bottom:20px;">
+        <p><strong>Status:</strong> ${order.status}</p>
+        <p><strong>Total:</strong> ₹${order.total_amount}</p>
+        <p><strong>Payment:</strong> ${order.payment_method}</p>
+
         <hr>
-      </div>
+
+        <h4>Products</h4>
     `;
+
+    /* ✅ SHOW PRODUCTS WITH IMAGE */
+    order.items.forEach(item => {
+      html += `
+        <div style="display:flex;gap:15px;align-items:center;margin-bottom:10px;">
+          <img src="${item.image}" style="width:80px;border-radius:6px;">
+          <div>
+            <p><strong>${item.name}</strong></p>
+            <p>₹${item.price} × ${item.qty}</p>
+          </div>
+        </div>
+      `;
+    });
+
+    html += </div>;
   });
 
   box.innerHTML = html;
@@ -68,4 +86,3 @@ loadOrders();
 
 </body>
 </html>
-
