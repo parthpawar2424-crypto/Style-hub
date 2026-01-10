@@ -34,8 +34,10 @@ async function loadCheckout() {
 
   html += `
     <h3>Total Payable: ₹${total}</h3>
-    <button onclick="placeOrder()">Place Order</button>
-    <button onclick="cancelOrder()">Cancel</button>
+    <button class="add-cart-btn" onclick="placeOrder()">Place Order</button>
+    <button class="add-cart-btn" style="background:#777;margin-top:10px;" onclick="cancelOrder()">
+      Cancel Order
+    </button>
   `;
 
   box.innerHTML = html;
@@ -44,18 +46,52 @@ async function loadCheckout() {
 async function placeOrder() {
   console.log("Place order clicked");
 
-  console.log("supabaseClient =", window.supabaseClient);
+  /* ✅ 1. GET LOGGED-IN USER */
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
 
+  if (authError || !authData.user) {
+    alert("Please login first");
+    return;
+  }
+
+  const userId = authData.user.id;
+
+  /* ✅ 2. GET CART / BUY NOW */
+  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  let items = [];
+  let total = 0;
+  let source = "";
+
+  if (buyNow) {
+    items = [buyNow];
+    total = buyNow.price * buyNow.qty;
+    source = "buy_now";
+  } else if (cart.length > 0) {
+    items = cart;
+    cart.forEach(i => (total += i.price * i.qty));
+    source = "cart";
+  } else {
+    alert("Nothing to order");
+    return;
+  }
+
+  /* ✅ 3. INSERT ORDER WITH user_id */
   const orderData = {
+    user_id: userId,              // ⭐ THIS WAS MISSING
     order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
-    source: "cart",
-    items: JSON.parse(localStorage.getItem("cart")) || [],
-    total_amount: 0,
+    source: source,
+    items: items,
+    total_amount: total,
     payment_method: "COD",
     status: "Placed"
   };
 
-  const { data, error } = await window.supabaseClient
+  console.log("Saving order:", orderData);
+
+  const { error } = await supabaseClient
     .from("orders")
     .insert([orderData]);
 
@@ -65,12 +101,17 @@ async function placeOrder() {
     return;
   }
 
+  /* ✅ 4. SUCCESS */
   alert("Order placed successfully!");
+
+  localStorage.removeItem("buyNowProduct");
   localStorage.removeItem("cart");
-  window.location.href = "index.html";
+
+  window.location.href = "myorders.html";
 }
 
 function cancelOrder() {
+  localStorage.removeItem("buyNowProduct");
   window.history.back();
 }
 
