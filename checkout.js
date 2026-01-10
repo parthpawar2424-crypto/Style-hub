@@ -1,7 +1,7 @@
 alert("checkout.js loaded");
+
 async function loadCheckout() {
   const box = document.getElementById("checkoutBox");
-
   if (!box) return;
 
   const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
@@ -19,12 +19,11 @@ async function loadCheckout() {
     `;
   } else if (cart.length > 0) {
     cart.forEach(item => {
-      const itemTotal = item.price * item.qty;
-      total += itemTotal;
+      total += item.price * item.qty;
       html += `
         <img src="${item.image}" style="width:120px;">
         <p><strong>${item.name}</strong></p>
-        <p>₹${item.price} × ${item.qty} = ₹${itemTotal}</p>
+        <p>₹${item.price} × ${item.qty}</p>
         <hr>
       `;
     });
@@ -35,50 +34,28 @@ async function loadCheckout() {
 
   html += `
     <h3>Total Payable: ₹${total}</h3>
-
-    <button class="add-cart-btn" onclick="placeOrder()">Place Order</button>
-
-    <button class="add-cart-btn"
-      style="background:#777;margin-top:10px;"
-      onclick="cancelOrder()">
-      Cancel Order
-    </button>
+    <button onclick="placeOrder()">Place Order</button>
+    <button onclick="cancelOrder()">Cancel</button>
   `;
 
   box.innerHTML = html;
 }
 
 async function placeOrder() {
-  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  console.log("Place order clicked");
 
-  let items = [];
-  let total = 0;
-  let source = "";
-
-  if (buyNow) {
-    items = [buyNow];
-    total = buyNow.price * buyNow.qty;
-    source = "buy_now";
-  } else if (cart.length > 0) {
-    items = cart;
-    cart.forEach(i => total += i.price * i.qty);
-    source = "cart";
-  } else {
-    alert("Nothing to order");
-    return;
-  }
+  console.log("supabaseClient =", window.supabaseClient);
 
   const orderData = {
     order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
-    source: source,
-    items: items,
-    total_amount: total,
+    source: "cart",
+    items: JSON.parse(localStorage.getItem("cart")) || [],
+    total_amount: 0,
     payment_method: "COD",
     status: "Placed"
   };
 
-  const { error } = await supabaseClient
+  const { data, error } = await window.supabaseClient
     .from("orders")
     .insert([orderData]);
 
@@ -89,15 +66,11 @@ async function placeOrder() {
   }
 
   alert("Order placed successfully!");
-
-  localStorage.removeItem("buyNowProduct");
   localStorage.removeItem("cart");
-
   window.location.href = "index.html";
 }
 
 function cancelOrder() {
-  localStorage.removeItem("buyNowProduct");
   window.history.back();
 }
 
