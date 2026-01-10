@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Account - High Street</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2 class="section-title">My Account</h2>
+
+<div class="form-container">
+  <form class="login-form" id="accountForm">
+
+    <label>Full Name</label>
+    <input type="text" id="fullName" required>
+
+    <label>Email (cannot be changed)</label>
+    <input type="email" id="email" disabled>
+
+    <label>Phone Number</label>
+    <input type="text" id="phone" required>
+
+    <hr>
+
+    <h3>Delivery Address</h3>
+
+    <label>House / Flat / Building</label>
+    <input type="text" id="house" required>
+
+    <label>Street / Area</label>
+    <input type="text" id="street" required>
+
+    <label>City</label>
+    <input type="text" id="city" required>
+
+    <label>State</label>
+    <input type="text" id="state" required>
+
+    <label>Pincode</label>
+    <input type="text" id="pincode" required>
+
+    <button type="submit">Save Details</button>
+
+    <p id="message" style="margin-top:10px;"></p>
+
+  </form>
+</div>
+
+<hr>
+<p class="copyright">© 2025 High Street. All Rights Reserved.</p>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
+<script src="account.js"></script>
+
+</body>
+</html>
