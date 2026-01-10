@@ -64,7 +64,11 @@ async function saveAccount(e) {
     msg.textContent = error.message;
   } else {
     msg.style.color = "green";
-    msg.textContent = "Account details saved successfully!";
+msg.textContent = "Account details saved successfully! Redirecting...";
+
+setTimeout(() => {
+  window.location.href = "index.html";
+}, 1200);
   }
 }
 
