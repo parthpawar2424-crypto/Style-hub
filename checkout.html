@@ -7,102 +7,30 @@
 
 <body>
 
-<h2 class="section-title">Checkout</h2>
+  <h2 class="section-title">Checkout</h2>
 
-<div class="form-container">
-  <div class="login-form" id="checkoutBox">
-    Loading checkout...
+  <div class="form-container">
+    <div class="login-form" id="checkoutBox">
+      Loading checkout...
+    </div>
   </div>
-</div>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
-<script src="supabase.js"></script>
-<script src="auth.js"></script>
+  <hr>
 
-<script>
-async function loadCheckout() {
-  const box = document.getElementById("checkoutBox");
+  <p class="copyright">
+    © 2025 High Street. All Rights Reserved.
+  </p>
 
-  const { data: auth } = await supabaseClient.auth.getUser();
-  if (!auth.user) {
-    box.innerHTML = "Please login to place order";
-    return;
-  }
+  <!-- ================= SCRIPTS (ORDER MATTERS) ================= -->
 
-  const userId = auth.user.id;
+  <!-- 1️⃣ Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
-  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  <!-- 2️⃣ Supabase client (createClient only) -->
+  <script src="supabase.js"></script>
 
-  let items = [];
-  let total = 0;
-  let source = "";
-
-  if (buyNow) {
-    items = [buyNow];
-    total = buyNow.price * buyNow.qty;
-    source = "buy_now";
-  } else if (cart.length > 0) {
-    items = cart;
-    cart.forEach(i => total += i.price * i.qty);
-    source = "cart";
-  } else {
-    box.innerHTML = "Cart is empty";
-    return;
-  }
-
-  box.innerHTML = `
-    <h3>Order Summary</h3>
-    <p>Total: ₹${total}</p>
-    <p>Payment: Cash on Delivery</p>
-
-    <button class="add-cart-btn" onclick="placeOrder('${userId}', ${total}, '${source}')">
-      Place Order
-    </button>
-
-    <button class="add-cart-btn" style="background:#777;margin-top:10px;" onclick="cancelOrder()">
-      Cancel Order
-    </button>
-  `;
-}
-
-async function placeOrder(userId, total, source) {
-  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  const items = buyNow ? [buyNow] : cart;
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([{
-      user_id: userId,
-      items: items,
-      total_amount: total,
-      payment_method: "COD",
-      status: "Placed",
-      source: source
-    }]);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  localStorage.removeItem("cart");
-  localStorage.removeItem("buyNowProduct");
-
-  alert("Order placed successfully");
-  window.location.href = "myorders.html";
-}
-
-function cancelOrder() {
-  localStorage.removeItem("buyNowProduct");
-  window.history.back();
-}
-
-loadCheckout();
-</script>
+  <!-- 3️⃣ Checkout logic -->
+  <script src="checkout.js"></script>
 
 </body>
 </html>
