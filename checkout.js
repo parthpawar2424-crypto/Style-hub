@@ -1,3 +1,4 @@
+alert("checkout.js loaded");
 async function loadCheckout() {
   const box = document.getElementById("checkoutBox");
 
