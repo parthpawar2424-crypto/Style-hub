@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Details - High Street</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2 class="section-title">Order Details</h2>
+
+<div class="form-container">
+  <div class="login-form" id="orderBox">
+    Loading order...
+  </div>
+</div>
+
+<p class="copyright">
+  © 2025 High Street. All Rights Reserved.
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function loadOrderDetails() {
+  const box = document.getElementById("orderBox");
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get("id");
+
+  if (!orderId) {
+    box.innerHTML = "Invalid order";
+    return;
+  }
+
+  const { data: auth } = await supabaseClient.auth.getUser();
+  if (!auth.user) {
+    box.innerHTML = "Please login";
+    return;
+  }
+
+  const { data: order, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+
+  if (error) {
+    box.innerHTML = error.message;
+    return;
+  }
+
+  const address = order.delivery_address;
+
+  let itemsHtml = "";
+  order.items.forEach(i => {
+    itemsHtml += `
+      <div style="margin-bottom:15px;">
+        <img src="${i.image}" width="100"><br>
+        <strong>${i.name}</strong><br>
+        ₹${i.price} × ${i.qty}
+      </div>
+    `;
+  });
+
+  box.innerHTML = `
+    <p><strong>Order ID:</strong> ${order.id}</p>
+    <p><strong>Status:</strong> ${order.status}</p>
+    <p><strong>Payment:</strong> ${order.payment_method}</p>
+    <p><strong>Total:</strong> ₹${order.total_amount}</p>
+
+    <hr>
+
+    <h3>Delivery Address</h3>
+    <p>
+      ${address.house}, ${address.area}<br>
+      ${address.city} - ${address.pincode}<br>
+      Phone: ${address.phone}
+    </p>
+
+    <hr>
+
+    <h3>Items</h3>
+    ${itemsHtml}
+
+    <button onclick="window.history.back()">Back</button>
+  `;
+}
+
+loadOrderDetails();
+</script>
+
+</body>
+</html>
