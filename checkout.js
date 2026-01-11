@@ -11,15 +11,14 @@ async function loadCheckout() {
 
   const userId = auth.user.id;
 
-  // 2️⃣ Fetch saved address
-  const { data: address, error: addressError } = await supabaseClient
-    .from("addresses")
-    .select("*")
+  // 2️⃣ Fetch address from PROFILES table
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("default_address")
     .eq("user_id", userId)
     .single();
 
-  // ❌ No address found
-  if (!address) {
+  if (error || !profile || !profile.default_address) {
     box.innerHTML = `
       <h3>No delivery address found</h3>
       <p>Please add address in My Account</p>
@@ -31,7 +30,9 @@ async function loadCheckout() {
     return;
   }
 
-  // 3️⃣ Load cart / buy now
+  const address = profile.default_address;
+
+  // 3️⃣ Load items
   const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -50,12 +51,13 @@ async function loadCheckout() {
   }
 
   // 4️⃣ Render checkout UI
-  let html = `<h3>Delivery Address</h3>
-    <p>${address.full_name}</p>
-    <p>${address.address}, ${address.city} - ${address.pincode}</p>
-    <p>📞 ${address.phone}</p>
+  let html = `
+    <h3>Delivery Address</h3>
+    <p><strong>${address.house}</strong></p>
+    <p>${address.city} - ${address.pincode}</p>
     <hr>
-    <h3>Order Summary</h3>`;
+    <h3>Order Summary</h3>
+  `;
 
   items.forEach(item => {
     html += `
@@ -71,6 +73,11 @@ async function loadCheckout() {
     <button class="add-cart-btn" onclick="placeOrder(${total})">
       Place Order
     </button>
+    <button class="add-cart-btn"
+      style="background:#777;margin-top:10px;"
+      onclick="window.history.back()">
+      Cancel Order
+    </button>
   `;
 
   box.innerHTML = html;
@@ -78,33 +85,35 @@ async function loadCheckout() {
 
 async function placeOrder(total) {
   const { data: auth } = await supabaseClient.auth.getUser();
-  if (!auth.user) return;
-
   const userId = auth.user.id;
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("default_address")
+    .eq("user_id", userId)
+    .single();
+
   const items =
     JSON.parse(localStorage.getItem("buyNowProduct"))
       ? [JSON.parse(localStorage.getItem("buyNowProduct"))]
       : JSON.parse(localStorage.getItem("cart")) || [];
 
-  const orderData = {
+  const { error } = await supabaseClient.from("orders").insert([{
     user_id: userId,
-    items: items,
+    items,
     total_amount: total,
     payment_method: "COD",
-    status: "Placed"
-  };
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([orderData]);
+    status: "Placed",
+    delivery_address: profile.default_address
+  }]);
 
   if (error) {
     alert(error.message);
     return;
   }
 
-  localStorage.removeItem("buyNowProduct");
   localStorage.removeItem("cart");
+  localStorage.removeItem("buyNowProduct");
 
   alert("Order placed successfully!");
   window.location.href = "myorders.html";
