@@ -2,28 +2,26 @@ async function loadCheckout() {
   const box = document.getElementById("checkoutBox");
   if (!box) return;
 
-  // 1️⃣ Get logged-in user
   const { data: auth } = await supabaseClient.auth.getUser();
   if (!auth.user) {
-    box.innerHTML = "Please login to continue checkout";
+    box.innerHTML = "Please login to place order";
     return;
   }
 
   const userId = auth.user.id;
 
-  // 2️⃣ Fetch address from PROFILES table
-  const { data: profile, error } = await supabaseClient
+  // 🔹 Fetch saved address
+  const { data: profile } = await supabaseClient
     .from("profiles")
     .select("default_address")
     .eq("user_id", userId)
     .single();
 
-  if (error || !profile || !profile.default_address) {
+  if (!profile || !profile.default_address) {
     box.innerHTML = `
       <h3>No delivery address found</h3>
       <p>Please add address in My Account</p>
-      <button class="add-cart-btn"
-        onclick="window.location.href='account.html'">
+      <button onclick="window.location.href='account.html'">
         Add Address
       </button>
     `;
@@ -32,7 +30,6 @@ async function loadCheckout() {
 
   const address = profile.default_address;
 
-  // 3️⃣ Load items
   const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -50,40 +47,27 @@ async function loadCheckout() {
     return;
   }
 
-  // 4️⃣ Render checkout UI
-  let html = `
+  box.innerHTML = `
     <h3>Delivery Address</h3>
-    <p><strong>${address.house}</strong></p>
-    <p>${address.city} - ${address.pincode}</p>
+    <p>
+      ${address.house}, ${address.area}<br>
+      ${address.city} - ${address.pincode}
+    </p>
     <hr>
+
     <h3>Order Summary</h3>
-  `;
+    <img src="${items[0].image}" style="width:120px;">
+    <p><strong>${items[0].name}</strong></p>
+    <p>₹${items[0].price} × ${items[0].qty}</p>
 
-  items.forEach(item => {
-    html += `
-      <img src="${item.image}" style="width:120px;">
-      <p><strong>${item.name}</strong></p>
-      <p>₹${item.price} × ${item.qty}</p>
-      <hr>
-    `;
-  });
-
-  html += `
     <h3>Total Payable: ₹${total}</h3>
-    <button class="add-cart-btn" onclick="placeOrder(${total})">
-      Place Order
-    </button>
-    <button class="add-cart-btn"
-      style="background:#777;margin-top:10px;"
-      onclick="window.history.back()">
-      Cancel Order
-    </button>
-  `;
 
-  box.innerHTML = html;
+    <button onclick="placeOrder()">Place Order</button>
+    <button onclick="cancelOrder()">Cancel Order</button>
+  `;
 }
 
-async function placeOrder(total) {
+async function placeOrder() {
   const { data: auth } = await supabaseClient.auth.getUser();
   const userId = auth.user.id;
 
@@ -93,30 +77,38 @@ async function placeOrder(total) {
     .eq("user_id", userId)
     .single();
 
-  const items =
-    JSON.parse(localStorage.getItem("buyNowProduct"))
-      ? [JSON.parse(localStorage.getItem("buyNowProduct"))]
-      : JSON.parse(localStorage.getItem("cart")) || [];
+  const items = JSON.parse(localStorage.getItem("cart")) ||
+                [JSON.parse(localStorage.getItem("buyNowProduct"))];
 
-  const { error } = await supabaseClient.from("orders").insert([{
+  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+
+  const orderData = {
     user_id: userId,
-    items,
+    order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
+    items: items,
     total_amount: total,
     payment_method: "COD",
     status: "Placed",
     delivery_address: profile.default_address
-  }]);
+  };
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert([orderData]);
 
   if (error) {
     alert(error.message);
     return;
   }
 
+  alert("Order placed successfully!");
   localStorage.removeItem("cart");
   localStorage.removeItem("buyNowProduct");
-
-  alert("Order placed successfully!");
   window.location.href = "myorders.html";
+}
+
+function cancelOrder() {
+  window.history.back();
 }
 
 document.addEventListener("DOMContentLoaded", loadCheckout);
