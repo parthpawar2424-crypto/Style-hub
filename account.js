@@ -1,78 +1,54 @@
-async function loadAccount() {
+async function saveAddress() {
   const { data: auth } = await supabaseClient.auth.getUser();
+  if (!auth.user) return alert("Login required");
 
-  if (!auth.user) {
-    window.location.href = "login.html";
-    return;
-  }
+  const userId = auth.user.id;
 
-  const user = auth.user;
-
-  // Fill email automatically
-  document.getElementById("email").value = user.email;
-
-  // Load existing profile
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profile) {
-    document.getElementById("fullName").value = profile.full_name || "";
-    document.getElementById("phone").value = profile.phone || "";
-
-    if (profile.default_address) {
-      document.getElementById("house").value = profile.default_address.house || "";
-      document.getElementById("street").value = profile.default_address.street || "";
-      document.getElementById("city").value = profile.default_address.city || "";
-      document.getElementById("state").value = profile.default_address.state || "";
-      document.getElementById("pincode").value = profile.default_address.pincode || "";
-    }
-  }
-}
-
-async function saveAccount(e) {
-  e.preventDefault();
-
-  const { data: auth } = await supabaseClient.auth.getUser();
-  const user = auth.user;
-
-  const profileData = {
-    user_id: user.id,
-    full_name: document.getElementById("fullName").value,
-    phone: document.getElementById("phone").value,
-    email: user.email,
-    default_address: {
-      house: document.getElementById("house").value,
-      street: document.getElementById("street").value,
-      city: document.getElementById("city").value,
-      state: document.getElementById("state").value,
-      pincode: document.getElementById("pincode").value
-    },
-    updated_at: new Date()
+  const address = {
+    user_id: userId,
+    name: name.value,
+    phone: phone.value,
+    house: house.value,
+    area: area.value,
+    city: city.value,
+    pincode: pincode.value,
+    is_default: isDefault.checked
   };
 
-  const { error } = await supabaseClient
-    .from("profiles")
-    .upsert(profileData);
-
-  const msg = document.getElementById("message");
-
-  if (error) {
-    msg.style.color = "red";
-    msg.textContent = error.message;
-  } else {
-    msg.style.color = "green";
-msg.textContent = "Account details saved successfully! Redirecting...";
-
-setTimeout(() => {
-  window.location.href = "index.html";
-}, 1200);
+  if (address.is_default) {
+    await supabaseClient
+      .from("addresses")
+      .update({ is_default: false })
+      .eq("user_id", userId);
   }
+
+  await supabaseClient.from("addresses").insert([address]);
+
+  alert("Address saved");
+  loadAddresses();
 }
 
-document.getElementById("accountForm")
-  .addEventListener("submit", saveAccount);
+async function loadAddresses() {
+  const { data: auth } = await supabaseClient.auth.getUser();
+  if (!auth.user) return;
 
-document.addEventListener("DOMContentLoaded", loadAccount);
+  const { data } = await supabaseClient
+    .from("addresses")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  let html = "";
+  data.forEach(a => {
+    html += `
+      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
+        <strong>${a.name}</strong> (${a.phone})<br>
+        ${a.house}, ${a.area}, ${a.city} - ${a.pincode}<br>
+        ${a.is_default ? "<b>Default</b>" : ""}
+      </div>
+    `;
+  });
+
+  document.getElementById("addressList").innerHTML = html;
+}
+
+loadAddresses();
