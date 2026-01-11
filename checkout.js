@@ -1,100 +1,100 @@
 async function loadCheckout() {
   const box = document.getElementById("checkoutBox");
-  if (!box) return;
 
   const { data: auth } = await supabaseClient.auth.getUser();
   if (!auth.user) {
-    box.innerHTML = "Please login to place order";
+    box.innerHTML = "Please login to continue checkout.";
     return;
   }
 
   const userId = auth.user.id;
 
-  // 🔹 Fetch saved address
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("default_address")
+  // 1️⃣ Fetch addresses
+  const { data: addresses } = await supabaseClient
+    .from("addresses")
+    .select("*")
     .eq("user_id", userId)
-    .single();
+    .order("created_at", { ascending: false });
 
-  if (!profile || !profile.default_address) {
+  if (!addresses || addresses.length === 0) {
     box.innerHTML = `
-      <h3>No delivery address found</h3>
-      <p>Please add address in My Account</p>
-      <button onclick="window.location.href='account.html'">
-        Add Address
-      </button>
+      <p>No delivery address found</p>
+      <button onclick="goToAccount()">Add Address</button>
     `;
     return;
   }
 
-  const address = profile.default_address;
+  const defaultAddress =
+    addresses.find(a => a.is_default) || addresses[0];
 
-  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
+  // 2️⃣ Get cart data
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  let items = [];
-  let total = 0;
-
-  if (buyNow) {
-    items = [buyNow];
-    total = buyNow.price * buyNow.qty;
-  } else if (cart.length > 0) {
-    items = cart;
-    cart.forEach(i => total += i.price * i.qty);
-  } else {
-    box.innerHTML = "Your cart is empty";
+  if (cart.length === 0) {
+    box.innerHTML = "Your cart is empty.";
     return;
   }
 
+  let total = 0;
+  cart.forEach(i => total += i.price * i.qty);
+
+  // 3️⃣ Build UI
+  let addressHtml = addresses.map(a => `
+    <label style="display:block;margin-bottom:8px;">
+      <input type="radio" name="address"
+        value='${JSON.stringify(a)}'
+        ${a.id === defaultAddress.id ? "checked" : ""}>
+      ${a.house}, ${a.area}, ${a.city} - ${a.pincode}
+    </label>
+  `).join("");
+
+  let itemsHtml = cart.map(i => `
+    <div style="margin-bottom:10px;">
+      <img src="${i.image}" width="80"><br>
+      ${i.name}<br>
+      ₹${i.price} × ${i.qty}
+    </div>
+  `).join("");
+
   box.innerHTML = `
     <h3>Delivery Address</h3>
-    <p>
-      ${address.house}, ${address.area}<br>
-      ${address.city} - ${address.pincode}
-    </p>
+    ${addressHtml}
+    <button onclick="goToAccount()">Edit Address</button>
+
     <hr>
 
     <h3>Order Summary</h3>
-    <img src="${items[0].image}" style="width:120px;">
-    <p><strong>${items[0].name}</strong></p>
-    <p>₹${items[0].price} × ${items[0].qty}</p>
+    ${itemsHtml}
+    <h3>Total: ₹${total}</h3>
 
-    <h3>Total Payable: ₹${total}</h3>
-
-    <button onclick="placeOrder()">Place Order</button>
-    <button onclick="cancelOrder()">Cancel Order</button>
+    <button onclick="placeOrder(${total})">Place Order</button>
+    <button onclick="cancelOrder()">Cancel</button>
   `;
 }
 
-async function placeOrder() {
+async function placeOrder(total) {
   const { data: auth } = await supabaseClient.auth.getUser();
   const userId = auth.user.id;
 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("default_address")
-    .eq("user_id", userId)
-    .single();
+  const selected = document.querySelector(
+    'input[name="address"]:checked'
+  );
 
-  const items = JSON.parse(localStorage.getItem("cart")) ||
-                [JSON.parse(localStorage.getItem("buyNowProduct"))];
+  if (!selected) {
+    alert("Please select an address");
+    return;
+  }
 
-  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const address = JSON.parse(selected.value);
+  const items = JSON.parse(localStorage.getItem("cart")) || [];
 
-  const orderData = {
+  const { error } = await supabaseClient.from("orders").insert([{
     user_id: userId,
-    order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
     items: items,
     total_amount: total,
     payment_method: "COD",
     status: "Placed",
-    delivery_address: profile.default_address
-  };
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert([orderData]);
+    delivery_address: address
+  }]);
 
   if (error) {
     alert(error.message);
@@ -103,8 +103,11 @@ async function placeOrder() {
 
   alert("Order placed successfully!");
   localStorage.removeItem("cart");
-  localStorage.removeItem("buyNowProduct");
   window.location.href = "myorders.html";
+}
+
+function goToAccount() {
+  window.location.href = "account.html";
 }
 
 function cancelOrder() {
