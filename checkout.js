@@ -1,117 +1,174 @@
-async function loadCheckout() {
+// checkout.js
+// ===============================
+// High Street – Checkout Logic
+// ===============================
+
+console.log("checkout.js loaded");
+
+document.addEventListener("DOMContentLoaded", loadCheckout);
+
+function loadCheckout() {
   const box = document.getElementById("checkoutBox");
+  if (!box) return;
 
-  const { data: auth } = await supabaseClient.auth.getUser();
-  if (!auth.user) {
-    box.innerHTML = "Please login to continue checkout.";
-    return;
-  }
-
-  const userId = auth.user.id;
-
-  // 1️⃣ Fetch addresses
-  const { data: addresses } = await supabaseClient
-    .from("addresses")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (!addresses || addresses.length === 0) {
-    box.innerHTML = `
-      <p>No delivery address found</p>
-      <button onclick="goToAccount()">Add Address</button>
-    `;
-    return;
-  }
-
-  const defaultAddress =
-    addresses.find(a => a.is_default) || addresses[0];
-
-  // 2️⃣ Get cart data
+  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  if (cart.length === 0) {
-    box.innerHTML = "Your cart is empty.";
-    return;
-  }
 
   let total = 0;
-  cart.forEach(i => total += i.price * i.qty);
+  let html = "<h3>Order Summary</h3><hr>";
 
-  // 3️⃣ Build UI
-  let addressHtml = addresses.map(a => `
-    <label style="display:block;margin-bottom:8px;">
-      <input type="radio" name="address"
-        value='${JSON.stringify(a)}'
-        ${a.id === defaultAddress.id ? "checked" : ""}>
-      ${a.house}, ${a.area}, ${a.city} - ${a.pincode}
-    </label>
-  `).join("");
+  // -------- BUY NOW FLOW --------
+  if (buyNow) {
+    total = buyNow.price * buyNow.qty;
 
-  let itemsHtml = cart.map(i => `
-    <div style="margin-bottom:10px;">
-      <img src="${i.image}" width="80"><br>
-      ${i.name}<br>
-      ₹${i.price} × ${i.qty}
-    </div>
-  `).join("");
+    html += `
+      <img src="${buyNow.image}" style="width:120px;margin-bottom:10px;">
+      <p><strong>${buyNow.name}</strong></p>
+      <p>₹${buyNow.price} × ${buyNow.qty}</p>
+    `;
+  }
 
-  box.innerHTML = `
-    <h3>Delivery Address</h3>
-    ${addressHtml}
-    <button onclick="goToAccount()">Edit Address</button>
+  // -------- CART FLOW --------
+  else if (cart.length > 0) {
+    cart.forEach(item => {
+      const itemTotal = item.price * item.qty;
+      total += itemTotal;
 
-    <hr>
+      html += `
+        <img src="${item.image}" style="width:120px;margin-bottom:10px;">
+        <p><strong>${item.name}</strong></p>
+        <p>₹${item.price} × ${item.qty} = ₹${itemTotal}</p>
+        <hr>
+      `;
+    });
+  }
 
-    <h3>Order Summary</h3>
-    ${itemsHtml}
-    <h3>Total: ₹${total}</h3>
-
-    <button onclick="placeOrder(${total})">Place Order</button>
-    <button onclick="cancelOrder()">Cancel</button>
-  `;
-}
-
-async function placeOrder(total) {
-  const { data: auth } = await supabaseClient.auth.getUser();
-  const userId = auth.user.id;
-
-  const selected = document.querySelector(
-    'input[name="address"]:checked'
-  );
-
-  if (!selected) {
-    alert("Please select an address");
+  // -------- EMPTY --------
+  else {
+    box.innerHTML = "<p>Your cart is empty.</p>";
     return;
   }
 
-  const address = JSON.parse(selected.value);
-  const items = JSON.parse(localStorage.getItem("cart")) || [];
+  // -------- PAYMENT UI --------
+  html += `
+    <hr>
+    <h3>Total Payable: ₹${total}</h3>
 
-  const { error } = await supabaseClient.from("orders").insert([{
-    user_id: userId,
+    <h3>Select Payment Method</h3>
+
+    <label>
+      <input type="radio" name="payment" value="COD" checked>
+      Cash on Delivery
+    </label><br><br>
+
+    <label>
+      <input type="radio" name="payment" value="UPI">
+      UPI (Google Pay / PhonePe)
+    </label>
+
+    <div id="upiBox" style="display:none;margin-top:10px;">
+      <input type="text" placeholder="Enter UPI ID" style="width:100%;">
+    </div>
+
+    <br>
+
+    <label>
+      <input type="radio" name="payment" value="CARD">
+      Debit / Credit Card
+    </label>
+
+    <div id="cardBox" style="display:none;margin-top:10px;">
+      <input type="text" placeholder="Card Number" style="width:100%;"><br><br>
+      <input type="text" placeholder="MM/YY" style="width:48%;">
+      <input type="text" placeholder="CVV" style="width:48%; float:right;">
+      <div style="clear:both;"></div>
+    </div>
+
+    <br><br>
+
+    <button class="add-cart-btn" onclick="placeOrder(${total})">
+      Place Order
+    </button>
+
+    <button class="add-cart-btn"
+      style="background:#777;margin-top:10px;"
+      onclick="cancelOrder()">
+      Cancel Order
+    </button>
+  `;
+
+  box.innerHTML = html;
+}
+
+// -------------------------------
+// PAYMENT UI TOGGLE
+// -------------------------------
+document.addEventListener("change", function (e) {
+  if (e.target.name === "payment") {
+    const upiBox = document.getElementById("upiBox");
+    const cardBox = document.getElementById("cardBox");
+
+    if (upiBox) upiBox.style.display = e.target.value === "UPI" ? "block" : "none";
+    if (cardBox) cardBox.style.display = e.target.value === "CARD" ? "block" : "none";
+  }
+});
+
+// -------------------------------
+// PLACE ORDER
+// -------------------------------
+async function placeOrder(total) {
+  const buyNow = JSON.parse(localStorage.getItem("buyNowProduct"));
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  let items = [];
+  let source = "";
+
+  if (buyNow) {
+    items = [buyNow];
+    source = "buy_now";
+  } else if (cart.length > 0) {
+    items = cart;
+    source = "cart";
+  } else {
+    alert("Nothing to order");
+    return;
+  }
+
+  const paymentMethod = document.querySelector(
+    'input[name="payment"]:checked'
+  ).value;
+
+  const orderData = {
+    order_id: "HS-" + Math.floor(100000 + Math.random() * 900000),
+    source: source,
     items: items,
     total_amount: total,
-    payment_method: "COD",
-    status: "Placed",
-    delivery_address: address
-  }]);
+    payment_method: paymentMethod,
+    status: "Placed"
+  };
+
+  const { error } = await window.supabaseClient
+    .from("orders")
+    .insert([orderData]);
 
   if (error) {
-    alert(error.message);
+    console.error(error);
+    alert("Order failed: " + error.message);
     return;
   }
 
   alert("Order placed successfully!");
+
+  localStorage.removeItem("buyNowProduct");
   localStorage.removeItem("cart");
-  window.location.href = "myorders.html";
+
+  window.location.href = "index.html";
 }
 
-function goToAccount() {
-  window.location.href = "account.html";
-}
-
+// -------------------------------
+// CANCEL ORDER
+// -------------------------------
 function cancelOrder() {
+  localStorage.removeItem("buyNowProduct");
   window.history.back();
 }
-
-document.addEventListener("DOMContentLoaded", loadCheckout);
