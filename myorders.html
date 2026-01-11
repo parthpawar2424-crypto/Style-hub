@@ -30,12 +30,10 @@ async function loadOrders() {
     return;
   }
 
-  const userId = auth.user.id;
-
   const { data: orders, error } = await supabaseClient
     .from("orders")
     .select("*")
-    .eq("user_id", userId)
+    .eq("user_id", auth.user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -43,42 +41,28 @@ async function loadOrders() {
     return;
   }
 
-  if (!orders || orders.length === 0) {
+  if (orders.length === 0) {
     box.innerHTML = "No orders found";
     return;
   }
 
   let html = "";
-
-  orders.forEach(order => {
+  orders.forEach(o => {
     html += `
-      <div style="background:#f8f8f8;padding:15px;border-radius:8px;margin-bottom:20px;">
-        <p><strong>Status:</strong> ${order.status}</p>
-        <p><strong>Total:</strong> ₹${order.total_amount}</p>
-        <p><strong>Payment:</strong> ${order.payment_method}</p>
-
-        <hr>
-
-        <h4>Products</h4>
+      <div class="order-card">
+        <p><strong>Status:</strong> ${o.status}</p>
+        <p><strong>Total:</strong> ₹${o.total_amount}</p>
+        <p><strong>Payment:</strong> ${o.payment_method}</p>
+        <button onclick="viewOrder('${o.id}')">View Details</button>
+      </div>
     `;
-
-    /* ✅ SHOW PRODUCTS WITH IMAGE */
-    order.items.forEach(item => {
-      html += `
-        <div style="display:flex;gap:15px;align-items:center;margin-bottom:10px;">
-          <img src="${item.image}" style="width:80px;border-radius:6px;">
-          <div>
-            <p><strong>${item.name}</strong></p>
-            <p>₹${item.price} × ${item.qty}</p>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
   });
 
   box.innerHTML = html;
+}
+
+function viewOrder(orderId) {
+  window.location.href = order-details.html?id=${orderId};
 }
 
 loadOrders();
@@ -86,4 +70,5 @@ loadOrders();
 
 </body>
 </html>
+
 
