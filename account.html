@@ -1,59 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>My Account - High Street</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h2 class="section-title">My Account</h2>
+  <h2 class="section-title">My Account</h2>
 
-<div class="form-container">
-  <form class="login-form" id="accountForm">
+  <div class="form-container">
 
-    <label>Full Name</label>
-    <input type="text" id="fullName" required>
-
-    <label>Email (cannot be changed)</label>
-    <input type="email" id="email" disabled>
-
-    <label>Phone Number</label>
-    <input type="text" id="phone" required>
+    <!-- USER INFO -->
+    <div class="login-form">
+      <h3>Account Details</h3>
+      <p id="userEmail">Loading...</p>
+      <button onclick="logout()">Logout</button>
+    </div>
 
     <hr>
 
-    <h3>Delivery Address</h3>
+    <!-- ADD ADDRESS -->
+    <div class="login-form">
+      <h3>Add New Address</h3>
 
-    <label>House / Flat / Building</label>
-    <input type="text" id="house" required>
+      <input id="name" placeholder="Full Name">
+      <input id="phone" placeholder="Phone Number">
+      <input id="house" placeholder="House / Flat">
+      <input id="area" placeholder="Area / Street">
+      <input id="city" placeholder="City">
+      <input id="pincode" placeholder="Pincode">
 
-    <label>Street / Area</label>
-    <input type="text" id="street" required>
+      <label style="display:block;margin:10px 0;">
+        <input type="checkbox" id="isDefault"> Set as default address
+      </label>
 
-    <label>City</label>
-    <input type="text" id="city" required>
+      <button onclick="saveAddress()">Save Address</button>
+    </div>
 
-    <label>State</label>
-    <input type="text" id="state" required>
+    <hr>
 
-    <label>Pincode</label>
-    <input type="text" id="pincode" required>
+    <!-- ADDRESS LIST -->
+    <div class="login-form">
+      <h3>Your Saved Addresses</h3>
+      <div id="addressList">Loading addresses...</div>
+    </div>
 
-    <button type="submit">Save Details</button>
+  </div>
 
-    <p id="message" style="margin-top:10px;"></p>
+  <p class="copyright">
+    © 2025 High Street. All Rights Reserved.
+  </p>
 
-  </form>
-</div>
+  <!-- ================= SCRIPTS (ORDER MATTERS) ================= -->
 
-<hr>
-<p class="copyright">© 2025 High Street. All Rights Reserved.</p>
+  <!-- 1️⃣ Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
-<!-- SCRIPTS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
-<script src="supabase.js"></script>
-<script src="account.js"></script>
+  <!-- 2️⃣ Supabase client -->
+  <script src="supabase.js"></script>
+
+  <!-- 3️⃣ Auth helper -->
+  <script src="auth.js"></script>
+
+  <!-- 4️⃣ Account Logic -->
+  <script>
+    async function loadAccount() {
+      const { data: auth } = await supabaseClient.auth.getUser();
+
+      if (!auth.user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      document.getElementById("userEmail").innerText =
+        "Logged in as: " + auth.user.email;
+
+      loadAddresses();
+    }
+
+    async function saveAddress() {
+      const { data: auth } = await supabaseClient.auth.getUser();
+      if (!auth.user) return alert("Login required");
+
+      const userId = auth.user.id;
+
+      if (isDefault.checked) {
+        await supabaseClient
+          .from("addresses")
+          .update({ is_default: false })
+          .eq("user_id", userId);
+      }
+
+      const { error } = await supabaseClient.from("addresses").insert([{
+        user_id: userId,
+        name: name.value,
+        phone: phone.value,
+        house: house.value,
+        area: area.value,
+        city: city.value,
+        pincode: pincode.value,
+        is_default: isDefault.checked
+      }]);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      alert("Address saved successfully");
+      clearForm();
+      loadAddresses();
+    }
+
+    async function loadAddresses() {
+      const { data: auth } = await supabaseClient.auth.getUser();
+      if (!auth.user) return;
+
+      const { data, error } = await supabaseClient
+        .from("addresses")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        document.getElementById("addressList").innerText = error.message;
+        return;
+      }
+
+      if (data.length === 0) {
+        document.getElementById("addressList").innerText =
+          "No addresses added yet.";
+        return;
+      }
+
+      let html = "";
+      data.forEach(a => {
+        html += `
+          <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
+            <strong>${a.name}</strong> (${a.phone})<br>
+            ${a.house}, ${a.area}, ${a.city} - ${a.pincode}<br>
+            ${a.is_default ? "<b>Default Address</b>" : ""}
+          </div>
+        `;
+      });
+
+      document.getElementById("addressList").innerHTML = html;
+    }
+
+    function clearForm() {
+      name.value = "";
+      phone.value = "";
+      house.value = "";
+      area.value = "";
+      city.value = "";
+      pincode.value = "";
+      isDefault.checked = false;
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = "index.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAccount);
+  </script>
 
 </body>
 </html>
